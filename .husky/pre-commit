@@ -3,3 +3,6 @@ npm test
 
 # Run linter
 npm run lint
+
+# Run formatter
+npm run format:check
