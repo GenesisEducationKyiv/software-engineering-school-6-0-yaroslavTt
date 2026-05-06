@@ -27,6 +27,7 @@ The service has three internal components running in a single process:
 ### Redis caching
 
 GitHub API responses are cached in Redis with a 10-minute TTL:
+
 - `gh:repo:{owner}:{repo}` — repository existence check
 - `gh:release:{owner}:{repo}` — latest release data
 
@@ -41,14 +42,14 @@ Redis is a **soft dependency**: if it's unavailable, the service continues witho
 
 Full documentation available at `GET /docs` (Swagger UI) once the service is running.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/subscribe` | Subscribe email to repo releases |
-| GET | `/api/confirm/:token` | Confirm subscription via email link |
-| GET | `/api/unsubscribe/:token` | Unsubscribe via email link |
-| GET | `/api/subscriptions?email=` | List confirmed subscriptions for an email |
-| GET | `/health` | Health check |
-| GET | `/metrics` | Prometheus metrics |
+| Method | Path                        | Description                               |
+| ------ | --------------------------- | ----------------------------------------- |
+| POST   | `/api/subscribe`            | Subscribe email to repo releases          |
+| GET    | `/api/confirm/:token`       | Confirm subscription via email link       |
+| GET    | `/api/unsubscribe/:token`   | Unsubscribe via email link                |
+| GET    | `/api/subscriptions?email=` | List confirmed subscriptions for an email |
+| GET    | `/health`                   | Health check                              |
+| GET    | `/metrics`                  | Prometheus metrics                        |
 
 ## Running with Docker
 
@@ -81,18 +82,18 @@ DATABASE_URL=postgresql://... REDIS_URL=redis://... npm test
 
 ## Environment variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `3000` | HTTP port |
-| `DATABASE_URL` | — | PostgreSQL connection string |
-| `GITHUB_TOKEN` | — | GitHub personal access token (raises rate limit to 5000/hr) |
-| `REDIS_URL` | `redis://localhost:6379` | Redis connection URL |
-| `REDIS_TTL` | `600` | Cache TTL in seconds |
-| `SMTP_HOST` | — | SMTP server host |
-| `SMTP_PORT` | `587` | SMTP server port |
-| `SMTP_USER` | — | SMTP username |
-| `SMTP_PASS` | — | SMTP password |
-| `EMAIL_FROM` | — | Sender address |
-| `APP_BASE_URL` | `http://localhost:3000` | Used to build confirm/unsubscribe links in emails |
-| `CRON_SCHEDULE` | `*/5 * * * *` | Cron expression for scanner interval |
-| `API_KEY` | — | If set, all write endpoints require `X-API-Key` header |
+| Variable        | Default                  | Description                                                 |
+| --------------- | ------------------------ | ----------------------------------------------------------- |
+| `PORT`          | `3000`                   | HTTP port                                                   |
+| `DATABASE_URL`  | —                        | PostgreSQL connection string                                |
+| `GITHUB_TOKEN`  | —                        | GitHub personal access token (raises rate limit to 5000/hr) |
+| `REDIS_URL`     | `redis://localhost:6379` | Redis connection URL                                        |
+| `REDIS_TTL`     | `600`                    | Cache TTL in seconds                                        |
+| `SMTP_HOST`     | —                        | SMTP server host                                            |
+| `SMTP_PORT`     | `587`                    | SMTP server port                                            |
+| `SMTP_USER`     | —                        | SMTP username                                               |
+| `SMTP_PASS`     | —                        | SMTP password                                               |
+| `EMAIL_FROM`    | —                        | Sender address                                              |
+| `APP_BASE_URL`  | `http://localhost:3000`  | Used to build confirm/unsubscribe links in emails           |
+| `CRON_SCHEDULE` | `*/5 * * * *`            | Cron expression for scanner interval                        |
+| `API_KEY`       | —                        | If set, all write endpoints require `X-API-Key` header      |

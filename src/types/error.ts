@@ -1,3 +1,3 @@
 export interface HttpError extends Error {
-  status?: number;
+    status?: number;
 }

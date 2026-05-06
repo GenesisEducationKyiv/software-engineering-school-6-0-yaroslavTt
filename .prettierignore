@@ -1,0 +1,11 @@
+# file patterns
+
+# files
+.prettierignore
+package-lock.json
+
+# folders
+.idea
+.vscode
+.husky
+.github
