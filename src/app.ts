@@ -1,35 +1,38 @@
-import express from 'express';
+import express, { Express } from 'express';
 import morgan from 'morgan';
 import path from 'path';
 import YAML from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
-import subscriptionRoutes from '@domains/subscription/subscription.routes.js';
-import { errorHandler } from '@middlewares/error-handler.middleware.js';
-import { register } from '@utilities/metrics/prom.js';
+import { createSubscriptionRouter } from '@domains/subscription/subscription.routes';
+import { errorHandler } from '@middlewares/error-handler.middleware';
+import { register } from '@utilities/metrics/prom';
+import { SubscriptionService } from '@domains/subscription/subscription.service';
 
-const app = express();
+export function createApp(subscriptionService: SubscriptionService): Express {
+    const app = express();
 
-app.use(express.json());
-app.use(morgan('combined'));
+    app.use(express.json());
+    app.use(morgan('combined'));
 
-// Swagger UI
-const swaggerDoc = YAML.load(path.join(__dirname, '..', 'swagger.yaml'));
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+    // Swagger UI
+    const swaggerDoc = YAML.load(path.join(__dirname, '..', 'swagger.yaml'));
+    app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
-// API routes
-app.use('/api', subscriptionRoutes);
+    // API routes
+    app.use('/api', createSubscriptionRouter(subscriptionService));
 
-// Health check
-app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', uptime: process.uptime() });
-});
+    // Health check
+    app.get('/health', (_req, res) => {
+        res.json({ status: 'ok', uptime: process.uptime() });
+    });
 
-// Prometheus metrics
-app.get('/metrics', async (_req, res) => {
-    res.set('Content-Type', register.contentType);
-    res.end(await register.metrics());
-});
+    // Prometheus metrics
+    app.get('/metrics', async (_req, res) => {
+        res.set('Content-Type', register.contentType);
+        res.end(await register.metrics());
+    });
 
-app.use(errorHandler);
+    app.use(errorHandler);
 
-export default app;
+    return app;
+}

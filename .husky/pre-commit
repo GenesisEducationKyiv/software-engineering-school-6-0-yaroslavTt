@@ -1,5 +1,5 @@
-# Run tests
-npm test
+# Run tests with coverage
+npm run test:cov
 
 # Run linter
 npm run lint

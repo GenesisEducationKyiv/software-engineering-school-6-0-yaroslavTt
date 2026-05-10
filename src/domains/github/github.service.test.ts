@@ -1,110 +1,97 @@
 import axios, { AxiosInstance } from 'axios';
-import Redis from 'ioredis';
-import * as github from './github.service.js';
-import * as redisService from '@utilities/redis/redis.service.js';
-import { RateLimitException } from '@exceptions/rate-limit.exception.js';
+import { RateLimitException } from '@exceptions/rate-limit.exception';
+import { GithubService } from './github.service';
+import { createMockCacheService } from '@test/mock-utils';
 
+const mockCacheService = createMockCacheService();
 let mockGet: jest.Mock;
+let githubService: GithubService;
 
 beforeEach(() => {
+    jest.resetAllMocks();
+    mockCacheService.cacheGet.mockResolvedValue(null);
     mockGet = jest.fn();
-    const fakeClient = { get: mockGet } as unknown as AxiosInstance;
-    github.setHttpClient(fakeClient);
-    redisService.setRedisClient(null);
-});
-
-afterEach(() => {
-    github.setHttpClient(null);
-    redisService.setRedisClient(null);
+    githubService = new GithubService({ get: mockGet } as unknown as AxiosInstance, mockCacheService);
 });
 
 describe('repoExists', () => {
     it('returns true when GitHub responds 200', async () => {
         mockGet.mockResolvedValueOnce({ status: 200, data: {} });
-        const result = await github.repoExists('golang', 'go');
+        const result = await githubService.repoExists('golang', 'go');
         expect(result).toBe(true);
     });
 
     it('returns false when GitHub responds 404', async () => {
-        const err = Object.assign(new Error('Not Found'), {
-            isAxiosError: true,
-            response: { status: 404 },
-        });
+        const mockAxiosError = { isAxiosError: true, response: { status: 404 } };
         jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
-        mockGet.mockRejectedValueOnce(err);
-        const result = await github.repoExists('no', 'repo');
+        mockGet.mockRejectedValueOnce(mockAxiosError);
+        const result = await githubService.repoExists('no', 'repo');
         expect(result).toBe(false);
     });
 
     it('throws RateLimitException on GitHub 429', async () => {
-        const err = Object.assign(new Error('Rate limited'), {
+        const mockAxiosError = {
             isAxiosError: true,
-            response: {
-                status: 429,
-                headers: { 'x-ratelimit-reset': '9999999999' },
-            },
-        });
+            response: { status: 429, headers: { 'x-ratelimit-reset': '9999999999' } },
+        };
         jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
-        mockGet.mockRejectedValueOnce(err);
-        await expect(github.repoExists('a', 'b')).rejects.toBeInstanceOf(RateLimitException);
+        mockGet.mockRejectedValueOnce(mockAxiosError);
+        await expect(githubService.repoExists('a', 'b')).rejects.toBeInstanceOf(RateLimitException);
     });
 
     it('uses Redis cache on cache hit and skips HTTP call', async () => {
-        const fakeRedis = {
-            get: jest.fn().mockResolvedValueOnce('true'),
-            setex: jest.fn(),
-        } as unknown as Redis;
-        redisService.setRedisClient(fakeRedis);
-
-        const result = await github.repoExists('golang', 'go');
+        mockCacheService.cacheGet.mockResolvedValueOnce(true);
+        const result = await githubService.repoExists('golang', 'go');
         expect(result).toBe(true);
         expect(mockGet).not.toHaveBeenCalled();
     });
 
-    it('continues without cache when Redis is unavailable', async () => {
-        const fakeRedis = {
-            get: jest.fn().mockRejectedValueOnce(new Error('ECONNREFUSED')),
-            setex: jest.fn().mockRejectedValueOnce(new Error('ECONNREFUSED')),
-        } as unknown as Redis;
-        redisService.setRedisClient(fakeRedis);
-        mockGet.mockResolvedValueOnce({ status: 200, data: {} });
-
-        const result = await github.repoExists('golang', 'go');
-        expect(result).toBe(true);
+    it('re-throws unexpected errors from repoExists', async () => {
+        const networkError = new Error('Network failure');
+        mockGet.mockRejectedValueOnce(networkError);
+        await expect(githubService.repoExists('a', 'b')).rejects.toThrow('Network failure');
     });
 });
 
 describe('getLatestRelease', () => {
+    const release = {
+        tag_name: 'v1.0',
+        name: 'Release 1.0',
+        html_url: 'http://...',
+        published_at: '',
+    };
+
     it('returns release data on 200', async () => {
-        const release = {
-            tag_name: 'v1.0',
-            name: 'Release 1.0',
-            html_url: 'http://...',
-            published_at: '',
-        };
         mockGet.mockResolvedValueOnce({ data: release });
-        const result = await github.getLatestRelease('golang', 'go');
+        const result = await githubService.getLatestRelease('golang', 'go');
         expect(result).toEqual(release);
     });
 
     it('returns null when no releases (GitHub 404)', async () => {
-        const err = Object.assign(new Error('Not Found'), {
-            isAxiosError: true,
-            response: { status: 404 },
-        });
+        const mockAxiosError = { isAxiosError: true, response: { status: 404 } };
         jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
-        mockGet.mockRejectedValueOnce(err);
-        const result = await github.getLatestRelease('empty', 'repo');
+        mockGet.mockRejectedValueOnce(mockAxiosError);
+        const result = await githubService.getLatestRelease('empty', 'repo');
         expect(result).toBeNull();
     });
 
     it('throws RateLimitException on 429', async () => {
-        const err = Object.assign(new Error('Rate limited'), {
-            isAxiosError: true,
-            response: { status: 429, headers: {} },
-        });
+        const mockAxiosError = { isAxiosError: true, response: { status: 429, headers: {} } };
         jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
-        mockGet.mockRejectedValueOnce(err);
-        await expect(github.getLatestRelease('a', 'b')).rejects.toBeInstanceOf(RateLimitException);
+        mockGet.mockRejectedValueOnce(mockAxiosError);
+        await expect(githubService.getLatestRelease('a', 'b')).rejects.toBeInstanceOf(RateLimitException);
+    });
+
+    it('re-throws unexpected errors from getLatestRelease', async () => {
+        const networkError = new Error('Network failure');
+        mockGet.mockRejectedValueOnce(networkError);
+        await expect(githubService.getLatestRelease('a', 'b')).rejects.toThrow('Network failure');
+    });
+
+    it('returns cached release and skips HTTP call', async () => {
+        mockCacheService.cacheGet.mockResolvedValueOnce(release);
+        const result = await githubService.getLatestRelease('golang', 'go');
+        expect(result).toEqual(release);
+        expect(mockGet).not.toHaveBeenCalled();
     });
 });

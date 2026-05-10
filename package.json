@@ -8,6 +8,7 @@
         "start": "node dist/index.js",
         "dev": "ts-node src/index.ts",
         "test": "jest --runInBand",
+        "test:cov": "jest --runInBand --coverage",
         "test:unit": "jest tests/unit --runInBand",
         "test:integration": "jest tests/integration --runInBand --forceExit --passWithNoTests",
         "lint": "eslint .",

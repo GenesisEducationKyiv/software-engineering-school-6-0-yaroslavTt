@@ -1,88 +1,155 @@
-import * as scanner from './scanner.service';
-import * as repository from '@domains/subscription/subscription.repository.js';
-import * as github from '@domains/github/github.service.js';
-import * as notifier from '@domains/notification/notifier.service.js';
 import { RateLimitException } from '@exceptions/rate-limit.exception';
+import { createMockGithubService, createMockNotifierService, createMockSubscriptionRepository } from '@test/mock-utils';
+import { ScannerService } from './scanner.service';
 
-jest.mock('@domains/subscription/subscription.repository.js');
-jest.mock('@domains/github/github.service.js');
-jest.mock('@domains/notification/notifier.service.js');
+jest.mock('node-cron', () => ({ schedule: jest.fn() }));
+import cron from 'node-cron';
 
-const mockRepos = repository.findAllDistinctReposConfirmed as jest.MockedFunction<
-    typeof repository.findAllDistinctReposConfirmed
->;
-const mockSubscribers = repository.findConfirmedSubscribersByRepo as jest.MockedFunction<
-    typeof repository.findConfirmedSubscribersByRepo
->;
-const mockUpdateTag = repository.updateLastSeenTag as jest.MockedFunction<typeof repository.updateLastSeenTag>;
-const mockGetRelease = github.getLatestRelease as jest.MockedFunction<typeof github.getLatestRelease>;
-const mockSendRelease = notifier.sendReleaseEmail as jest.MockedFunction<typeof notifier.sendReleaseEmail>;
+const mockSubscriptionRepository = createMockSubscriptionRepository();
+const mockGithubService = createMockGithubService();
+const mockNotifierService = createMockNotifierService();
+let scannerService: ScannerService;
 
 const release = { tag_name: 'v2.0', name: 'Release 2.0', html_url: 'http://github.com/r', published_at: '' };
 const subscriber = { email: 'u@e.com', unsub_token: 'tok', last_seen_tag: 'v1.0' };
+const repoConfirmed = { owner: 'a', repo: 'b' };
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+    jest.resetAllMocks();
+    scannerService = new ScannerService(mockSubscriptionRepository, mockGithubService, mockNotifierService);
+});
 
 describe('scan', () => {
     it('sends email and updates tag when new release detected', async () => {
-        mockRepos.mockResolvedValue([{ owner: 'a', repo: 'b' }]);
-        mockGetRelease.mockResolvedValue(release);
-        mockSubscribers.mockResolvedValue([subscriber]);
-        mockUpdateTag.mockResolvedValue(undefined);
-        mockSendRelease.mockResolvedValue(undefined);
+        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockResolvedValue([repoConfirmed]);
+        mockGithubService.getLatestRelease.mockResolvedValue(release);
+        mockSubscriptionRepository.findConfirmedSubscribersByRepo.mockResolvedValue([subscriber]);
+        mockSubscriptionRepository.updateLastSeenTag.mockResolvedValue(undefined);
 
-        await scanner.scan();
+        await scannerService.scan();
 
-        expect(mockSendRelease).toHaveBeenCalledTimes(1);
-        expect(mockUpdateTag).toHaveBeenCalledWith({ owner: 'a', repo: 'b', tag: 'v2.0' });
+        expect(mockNotifierService.sendReleaseEmail).toHaveBeenCalledTimes(1);
+        expect(mockSubscriptionRepository.updateLastSeenTag).toHaveBeenCalledWith({
+            owner: repoConfirmed.owner,
+            repo: repoConfirmed.repo,
+            tag: release.tag_name,
+        });
     });
 
     it('does not send email when tag is unchanged', async () => {
-        mockRepos.mockResolvedValue([{ owner: 'a', repo: 'b' }]);
-        mockGetRelease.mockResolvedValue({ ...release, tag_name: 'v1.0' });
-        mockSubscribers.mockResolvedValue([subscriber]); // last_seen_tag: 'v1.0'
+        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockResolvedValue([repoConfirmed]);
+        mockGithubService.getLatestRelease.mockResolvedValue({ ...release, tag_name: 'v1.0' });
+        mockSubscriptionRepository.findConfirmedSubscribersByRepo.mockResolvedValue([subscriber]); // last_seen_tag: 'v1.0'
 
-        await scanner.scan();
+        await scannerService.scan();
 
-        expect(mockSendRelease).not.toHaveBeenCalled();
-        expect(mockUpdateTag).not.toHaveBeenCalled();
+        expect(mockNotifierService.sendReleaseEmail).not.toHaveBeenCalled();
+        expect(mockSubscriptionRepository.updateLastSeenTag).not.toHaveBeenCalled();
     });
 
     it('bootstraps last_seen_tag without sending email when null', async () => {
-        mockRepos.mockResolvedValue([{ owner: 'a', repo: 'b' }]);
-        mockGetRelease.mockResolvedValue(release);
-        mockSubscribers.mockResolvedValue([{ ...subscriber, last_seen_tag: null }]);
-        mockUpdateTag.mockResolvedValue(undefined);
+        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockResolvedValue([repoConfirmed]);
+        mockGithubService.getLatestRelease.mockResolvedValue(release);
+        mockSubscriptionRepository.findConfirmedSubscribersByRepo.mockResolvedValue([
+            { ...subscriber, last_seen_tag: null },
+        ]);
+        mockSubscriptionRepository.updateLastSeenTag.mockResolvedValue(undefined);
 
-        await scanner.scan();
+        await scannerService.scan();
 
-        expect(mockSendRelease).not.toHaveBeenCalled();
-        expect(mockUpdateTag).toHaveBeenCalledWith({ owner: 'a', repo: 'b', tag: 'v2.0' });
+        expect(mockNotifierService.sendReleaseEmail).not.toHaveBeenCalled();
+        expect(mockSubscriptionRepository.updateLastSeenTag).toHaveBeenCalledWith({
+            owner: repoConfirmed.owner,
+            repo: repoConfirmed.repo,
+            tag: release.tag_name,
+        });
     });
 
     it('skips repo when no releases available', async () => {
-        mockRepos.mockResolvedValue([{ owner: 'a', repo: 'b' }]);
-        mockGetRelease.mockResolvedValue(null);
+        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockResolvedValue([repoConfirmed]);
+        mockGithubService.getLatestRelease.mockResolvedValue(null);
 
-        await scanner.scan();
+        await scannerService.scan();
 
-        expect(mockSubscribers).not.toHaveBeenCalled();
-        expect(mockSendRelease).not.toHaveBeenCalled();
+        expect(mockSubscriptionRepository.findConfirmedSubscribersByRepo).not.toHaveBeenCalled();
+        expect(mockNotifierService.sendReleaseEmail).not.toHaveBeenCalled();
     });
 
     it('aborts remaining repos on RateLimitError', async () => {
-        mockRepos.mockResolvedValue([
-            { owner: 'a', repo: 'b' },
+        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockResolvedValue([
+            repoConfirmed,
             { owner: 'c', repo: 'd' },
         ]);
-        mockGetRelease
+        mockGithubService.getLatestRelease
             .mockRejectedValueOnce(new RateLimitException('rate limit', 9999999999))
             .mockResolvedValueOnce(release);
 
-        await scanner.scan();
+        await scannerService.scan();
 
         // Second repo should never be reached
-        expect(mockGetRelease).toHaveBeenCalledTimes(1);
-        expect(mockSendRelease).not.toHaveBeenCalled();
+        expect(mockGithubService.getLatestRelease).toHaveBeenCalledTimes(1);
+        expect(mockNotifierService.sendReleaseEmail).not.toHaveBeenCalled();
+    });
+
+    it('logs error and continues to next repo on non-RateLimit error', async () => {
+        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockResolvedValue([
+            repoConfirmed,
+            { owner: 'c', repo: 'd' },
+        ]);
+        mockGithubService.getLatestRelease
+            .mockRejectedValueOnce(new Error('Network failure'))
+            .mockResolvedValueOnce(release);
+        mockSubscriptionRepository.findConfirmedSubscribersByRepo.mockResolvedValue([subscriber]);
+        mockSubscriptionRepository.updateLastSeenTag.mockResolvedValue(undefined);
+
+        await scannerService.scan();
+
+        expect(mockGithubService.getLatestRelease).toHaveBeenCalledTimes(2);
+        expect(mockNotifierService.sendReleaseEmail).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles unexpected error thrown by scan() inside cron callback', async () => {
+        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockRejectedValue(new Error('DB down'));
+        scannerService.start();
+
+        const callback = (cron.schedule as jest.Mock).mock.calls[0][1];
+        await expect(callback()).resolves.toBeUndefined();
+    });
+
+    it('skips repo when no confirmed subscribers found after release check', async () => {
+        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockResolvedValue([repoConfirmed]);
+        mockGithubService.getLatestRelease.mockResolvedValue(release);
+        mockSubscriptionRepository.findConfirmedSubscribersByRepo.mockResolvedValue([]);
+
+        await scannerService.scan();
+
+        expect(mockNotifierService.sendReleaseEmail).not.toHaveBeenCalled();
+        expect(mockSubscriptionRepository.updateLastSeenTag).not.toHaveBeenCalled();
+    });
+
+    it('aborts scan when rate limited with null retryAfter', async () => {
+        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockResolvedValue([repoConfirmed]);
+        mockGithubService.getLatestRelease.mockRejectedValueOnce(new RateLimitException('rate limit', null));
+
+        await scannerService.scan();
+
+        expect(mockNotifierService.sendReleaseEmail).not.toHaveBeenCalled();
+    });
+});
+
+describe('start', () => {
+    it('start() schedules scan on the configured cron expression', () => {
+        scannerService.start();
+        expect(cron.schedule).toHaveBeenCalledWith(expect.any(String), expect.any(Function));
+    });
+
+    it('start() calls scan() when cron fires', async () => {
+        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockResolvedValue([]);
+        scannerService.start();
+
+        const callback = (cron.schedule as jest.Mock).mock.calls[0][1];
+        await callback();
+
+        expect(mockSubscriptionRepository.findAllDistinctReposConfirmed).toHaveBeenCalled();
     });
 });

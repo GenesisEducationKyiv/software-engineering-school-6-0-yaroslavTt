@@ -1,27 +1,20 @@
 import Redis from 'ioredis';
-import { environmentConfig } from '@config/environment.js';
+import { environmentConfig } from '@config/environment';
+import type { ICacheService } from './interface/cache.service.interface';
 
-let redis: Redis | null = null;
+export class RedisService implements ICacheService {
+    constructor(private readonly client: Redis) {}
 
-export function setRedisClient(client: Redis | null): void {
-    redis = client;
-}
-
-export async function cacheGet<T>(key: string): Promise<T | null> {
-    if (!redis) return null;
-    try {
-        const val = await redis.get(key);
-        return val ? (JSON.parse(val) as T) : null;
-    } catch {
-        return null;
+    async cacheGet<T>(key: string): Promise<T | null> {
+        try {
+            const val = await this.client.get(key);
+            return val ? (JSON.parse(val) as T) : null;
+        } catch {
+            return null;
+        }
     }
-}
 
-export async function cacheSet(key: string, value: unknown): Promise<void> {
-    if (!redis) return;
-    try {
-        await redis.setex(key, environmentConfig.redisTtl, JSON.stringify(value));
-    } catch {
-        // Redis is a soft dependency — ignore write failures
+    async cacheSet(key: string, value: unknown): Promise<void> {
+        await this.client.setex(key, environmentConfig.redisTtl, JSON.stringify(value));
     }
 }

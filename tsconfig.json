@@ -20,7 +20,8 @@
             "@constants/*": ["./src/constants/*"],
             "@middlewares/*": ["./src/middlewares/*"],
             "@exceptions/*": ["./src/exceptions/*"],
-            "@db/*": ["./src/db/*"]
+            "@db/*": ["./src/db/*"],
+            "@test/*": ["./src/test/*"]
         }
     },
     "include": ["src/**/*"],
