@@ -3,7 +3,7 @@ import globals from 'globals';
 import prettier from 'eslint-config-prettier/flat';
 
 export default [
-    { ignores: ['dist/**', 'node_modules/**'] },
+    { ignores: ['dist/**', 'node_modules/**', 'coverage/**'] },
     ...tseslint.configs.recommended,
     prettier,
     {
