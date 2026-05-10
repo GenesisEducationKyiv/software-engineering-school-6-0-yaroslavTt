@@ -1,8 +1,8 @@
 import axios, { AxiosInstance } from 'axios';
 import Redis from 'ioredis';
-import * as github from '../../src/services/githubService';
-import * as redisService from '../../src/utils/redis/redisService';
-import { RateLimitError } from '../../src/errors';
+import * as github from './github.service.js';
+import * as redisService from '@utilities/redis/redis.service.js';
+import { RateLimitException } from '@exceptions/rate-limit.exception.js';
 
 let mockGet: jest.Mock;
 
@@ -36,7 +36,7 @@ describe('repoExists', () => {
         expect(result).toBe(false);
     });
 
-    it('throws RateLimitError on GitHub 429', async () => {
+    it('throws RateLimitException on GitHub 429', async () => {
         const err = Object.assign(new Error('Rate limited'), {
             isAxiosError: true,
             response: {
@@ -46,7 +46,7 @@ describe('repoExists', () => {
         });
         jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
         mockGet.mockRejectedValueOnce(err);
-        await expect(github.repoExists('a', 'b')).rejects.toBeInstanceOf(RateLimitError);
+        await expect(github.repoExists('a', 'b')).rejects.toBeInstanceOf(RateLimitException);
     });
 
     it('uses Redis cache on cache hit and skips HTTP call', async () => {
@@ -98,13 +98,13 @@ describe('getLatestRelease', () => {
         expect(result).toBeNull();
     });
 
-    it('throws RateLimitError on 429', async () => {
+    it('throws RateLimitException on 429', async () => {
         const err = Object.assign(new Error('Rate limited'), {
             isAxiosError: true,
             response: { status: 429, headers: {} },
         });
         jest.spyOn(axios, 'isAxiosError').mockReturnValue(true);
         mockGet.mockRejectedValueOnce(err);
-        await expect(github.getLatestRelease('a', 'b')).rejects.toBeInstanceOf(RateLimitError);
+        await expect(github.getLatestRelease('a', 'b')).rejects.toBeInstanceOf(RateLimitException);
     });
 });

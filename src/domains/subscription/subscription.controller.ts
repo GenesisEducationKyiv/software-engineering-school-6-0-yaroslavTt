@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import * as subscriptionService from '../services/subscriptionService.js';
+import * as subscriptionService from './subscription.service.js';
 
 export async function subscribe(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {

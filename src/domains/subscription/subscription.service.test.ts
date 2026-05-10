@@ -1,12 +1,15 @@
-import * as service from '../../src/services/subscriptionService';
-import * as github from '../../src/services/githubService';
-import * as repository from '../../src/repositories/subscriptionRepository';
-import * as notifier from '../../src/services/notifierService';
-import { ValidationError, NotFoundError, ConflictError, RateLimitError } from '../../src/errors';
+import * as service from './subscription.service.js';
+import * as github from '@domains/github/github.service.js';
+import * as repository from './subscription.repository.js';
+import * as notifier from '@domains/notification/notifier.service.js';
+import { ValidationException } from '@exceptions/validation.exception.js';
+import { NotFoundException } from '@exceptions/not-found.exception.js';
+import { ConflictException } from '@exceptions/conflict.exception.js';
+import { RateLimitException } from '@exceptions/rate-limit.exception.js';
 
-jest.mock('../../src/services/githubService');
-jest.mock('../../src/repositories/subscriptionRepository');
-jest.mock('../../src/services/notifierService');
+jest.mock('@domains/github/github.service.js');
+jest.mock('./subscription.repository.js');
+jest.mock('@domains/notification/notifier.service.js');
 
 const mockRepoExists = github.repoExists as jest.MockedFunction<typeof github.repoExists>;
 const mockCreate = repository.create as jest.MockedFunction<typeof repository.create>;
@@ -41,32 +44,38 @@ describe('subscribe', () => {
         expect(mockSendConfirmation).toHaveBeenCalledTimes(1);
     });
 
-    it('throws ValidationError for invalid email', async () => {
-        await expect(service.subscribe({ email: 'bad', repo: 'golang/go' })).rejects.toBeInstanceOf(ValidationError);
+    it('throws ValidationException for invalid email', async () => {
+        await expect(service.subscribe({ email: 'bad', repo: 'golang/go' })).rejects.toBeInstanceOf(
+            ValidationException,
+        );
     });
 
-    it('throws ValidationError for invalid repo format (no slash)', async () => {
-        await expect(service.subscribe({ email: 'u@e.com', repo: 'golang' })).rejects.toBeInstanceOf(ValidationError);
+    it('throws ValidationException for invalid repo format (no slash)', async () => {
+        await expect(service.subscribe({ email: 'u@e.com', repo: 'golang' })).rejects.toBeInstanceOf(
+            ValidationException,
+        );
     });
 
-    it('throws ValidationError for invalid repo format (too many parts)', async () => {
-        await expect(service.subscribe({ email: 'u@e.com', repo: 'a/b/c' })).rejects.toBeInstanceOf(ValidationError);
+    it('throws ValidationException for invalid repo format (too many parts)', async () => {
+        await expect(service.subscribe({ email: 'u@e.com', repo: 'a/b/c' })).rejects.toBeInstanceOf(
+            ValidationException,
+        );
     });
 
-    it('throws NotFoundError when repo does not exist on GitHub', async () => {
+    it('throws NotFoundException when repo does not exist on GitHub', async () => {
         mockRepoExists.mockResolvedValue(false);
-        await expect(service.subscribe(validParams)).rejects.toBeInstanceOf(NotFoundError);
+        await expect(service.subscribe(validParams)).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it('throws ConflictError when subscription already exists', async () => {
+    it('throws ConflictException when subscription already exists', async () => {
         mockRepoExists.mockResolvedValue(true);
         mockCreate.mockResolvedValue(null);
-        await expect(service.subscribe(validParams)).rejects.toBeInstanceOf(ConflictError);
+        await expect(service.subscribe(validParams)).rejects.toBeInstanceOf(ConflictException);
     });
 
-    it('re-throws RateLimitError from GitHub', async () => {
-        mockRepoExists.mockRejectedValue(new RateLimitError('rate limit'));
-        await expect(service.subscribe(validParams)).rejects.toBeInstanceOf(RateLimitError);
+    it('re-throws RateLimitException from GitHub', async () => {
+        mockRepoExists.mockRejectedValue(new RateLimitException('rate limit'));
+        await expect(service.subscribe(validParams)).rejects.toBeInstanceOf(RateLimitException);
     });
 });
 
@@ -87,9 +96,9 @@ describe('confirmSubscription', () => {
         await expect(service.confirmSubscription('tok')).resolves.toBeUndefined();
     });
 
-    it('throws NotFoundError for unknown token', async () => {
+    it('throws NotFoundException for unknown token', async () => {
         mockFindConfirmToken.mockResolvedValue(null);
-        await expect(service.confirmSubscription('bad')).rejects.toBeInstanceOf(NotFoundError);
+        await expect(service.confirmSubscription('bad')).rejects.toBeInstanceOf(NotFoundException);
     });
 });
 
@@ -110,8 +119,8 @@ describe('unsubscribe', () => {
         await expect(service.unsubscribe('ut')).resolves.toBeUndefined();
     });
 
-    it('throws NotFoundError for unknown token', async () => {
+    it('throws NotFoundException for unknown token', async () => {
         mockFindUnsubToken.mockResolvedValue(null);
-        await expect(service.unsubscribe('bad')).rejects.toBeInstanceOf(NotFoundError);
+        await expect(service.unsubscribe('bad')).rejects.toBeInstanceOf(NotFoundException);
     });
 });

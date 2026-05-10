@@ -1,8 +1,8 @@
 import axios, { AxiosInstance } from 'axios';
-import { environmentConfig } from '../config/environment.js';
-import { RateLimitError } from '../errors.js';
-import * as redisService from '../utils/redis/redisService.js';
-import type { Release } from '../types/github.js';
+import { environmentConfig } from '@config/environment.js';
+import * as redisService from '@utilities/redis/redis.service.js';
+import type { GithubRelease } from './dto/github-release.dto.js';
+import { RateLimitException } from '@exceptions/rate-limit.exception.js';
 
 // Lazily created so tests can inject a mock via setHttpClient before first call
 let httpClient: AxiosInstance | null = null;
@@ -29,7 +29,7 @@ function handleRateLimit(err: unknown): never {
     if (axios.isAxiosError(err) && err.response?.status === 429) {
         const reset = err.response.headers['x-ratelimit-reset'];
         const retryAfter = reset ? parseInt(reset, 10) : null;
-        throw new RateLimitError('GitHub API rate limit exceeded', retryAfter);
+        throw new RateLimitException('GitHub API rate limit exceeded', retryAfter);
     }
     throw err;
 }
@@ -49,13 +49,13 @@ export async function repoExists(owner: string, repo: string): Promise<boolean> 
     }
 }
 
-export async function getLatestRelease(owner: string, repo: string): Promise<Release | null> {
+export async function getLatestRelease(owner: string, repo: string): Promise<GithubRelease | null> {
     const cacheKey = `gh:release:${owner}:${repo}`;
-    const cached = await redisService.cacheGet<Release>(cacheKey);
+    const cached = await redisService.cacheGet<GithubRelease>(cacheKey);
     if (cached !== null) return cached;
 
     try {
-        const { data } = await getHttpClient().get<Release>(`/repos/${owner}/${repo}/releases/latest`);
+        const { data } = await getHttpClient().get<GithubRelease>(`/repos/${owner}/${repo}/releases/latest`);
         await redisService.cacheSet(cacheKey, data);
         return data;
     } catch (err) {

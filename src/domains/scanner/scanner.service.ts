@@ -1,9 +1,9 @@
 import cron from 'node-cron';
-import * as subscriptionRepository from '../repositories/subscriptionRepository.js';
-import * as githubService from './githubService.js';
-import * as notifierService from './notifierService.js';
-import { RateLimitError } from '../errors.js';
-import { environmentConfig } from '../config/environment.js';
+import * as subscriptionRepository from '@domains/subscription/subscription.repository.js';
+import * as githubService from '@domains/github/github.service.js';
+import * as notifierService from '@domains/notification/notifier.service.js';
+import { environmentConfig } from '@config/environment.js';
+import { RateLimitException } from '@exceptions/rate-limit.exception';
 
 export async function scan(): Promise<void> {
     const repos = await subscriptionRepository.findAllDistinctReposConfirmed();
@@ -56,7 +56,7 @@ export async function scan(): Promise<void> {
                 tag: release.tag_name,
             });
         } catch (err) {
-            if (err instanceof RateLimitError) {
+            if (err instanceof RateLimitException) {
                 const retryTime = err.retryAfter ? new Date(err.retryAfter * 1000).toISOString() : 'unknown';
                 console.warn(`[scanner] GitHub rate limit hit. Retry after: ${retryTime}. Aborting scan.`);
                 return;

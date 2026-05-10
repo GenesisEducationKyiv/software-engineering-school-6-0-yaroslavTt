@@ -1,5 +1,6 @@
-import { pool } from '../db/index.js';
-import type { Subscription, SubscriptionRow } from '../types/subscription.js';
+import { pool } from '@db/index.js';
+import type { SubscriptionRow } from './dto/subscription-row.dto.js';
+import type { Subscription } from './dto/subscription.dto.js';
 
 export async function create(params: {
     email: string;

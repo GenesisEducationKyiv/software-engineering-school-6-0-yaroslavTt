@@ -1,9 +1,9 @@
 import Redis from 'ioredis';
-import { runMigrations } from './db/index.js';
-import * as redisService from './utils/redis/redisService.js';
-import { start as startScanner } from './services/scannerService.js';
+import { runMigrations } from '@db/index.js';
+import * as redisService from '@utilities/redis/redis.service.js';
+import { start as startScanner } from '@domains/scanner/scanner.service.js';
 import app from './app.js';
-import { environmentConfig } from './config/environment.js';
+import { environmentConfig } from '@config/environment.js';
 
 async function main(): Promise<void> {
     // 1. Run DB migrations

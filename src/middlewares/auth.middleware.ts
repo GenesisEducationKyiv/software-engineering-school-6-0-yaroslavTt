@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { environmentConfig } from '../config/environment.js';
+import { environmentConfig } from '@config/environment.js';
 
 export function apiKeyAuth(req: Request, res: Response, next: NextFunction): void {
     if (!environmentConfig.apiKey) {

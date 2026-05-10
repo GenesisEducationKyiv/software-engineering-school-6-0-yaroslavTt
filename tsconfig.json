@@ -11,7 +11,17 @@
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
         "declaration": false,
-        "sourceMap": true
+        "sourceMap": true,
+        "types": ["jest", "node"],
+        "paths": {
+            "@config/*": ["./src/config/*"],
+            "@domains/*": ["./src/domains/*"],
+            "@utilities/*": ["./src/utilities/*"],
+            "@constants/*": ["./src/constants/*"],
+            "@middlewares/*": ["./src/middlewares/*"],
+            "@exceptions/*": ["./src/exceptions/*"],
+            "@db/*": ["./src/db/*"]
+        }
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules", "dist", "tests"]

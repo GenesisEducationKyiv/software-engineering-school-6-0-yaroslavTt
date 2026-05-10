@@ -1,12 +1,12 @@
-import * as scanner from '../../src/services/scannerService';
-import * as repository from '../../src/repositories/subscriptionRepository';
-import * as github from '../../src/services/githubService';
-import * as notifier from '../../src/services/notifierService';
-import { RateLimitError } from '../../src/errors';
+import * as scanner from './scanner.service';
+import * as repository from '@domains/subscription/subscription.repository.js';
+import * as github from '@domains/github/github.service.js';
+import * as notifier from '@domains/notification/notifier.service.js';
+import { RateLimitException } from '@exceptions/rate-limit.exception';
 
-jest.mock('../../src/repositories/subscriptionRepository');
-jest.mock('../../src/services/githubService');
-jest.mock('../../src/services/notifierService');
+jest.mock('@domains/subscription/subscription.repository.js');
+jest.mock('@domains/github/github.service.js');
+jest.mock('@domains/notification/notifier.service.js');
 
 const mockRepos = repository.findAllDistinctReposConfirmed as jest.MockedFunction<
     typeof repository.findAllDistinctReposConfirmed
@@ -76,7 +76,7 @@ describe('scan', () => {
             { owner: 'c', repo: 'd' },
         ]);
         mockGetRelease
-            .mockRejectedValueOnce(new RateLimitError('rate limit', 9999999999))
+            .mockRejectedValueOnce(new RateLimitException('rate limit', 9999999999))
             .mockResolvedValueOnce(release);
 
         await scanner.scan();

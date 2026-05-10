@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import fs from 'fs';
 import path from 'path';
-import { environmentConfig } from '../config/environment.js';
+import { environmentConfig } from '@config/environment.js';
 
 export const pool = new Pool({
     connectionString: environmentConfig.databaseUrl,

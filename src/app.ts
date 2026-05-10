@@ -3,9 +3,9 @@ import morgan from 'morgan';
 import path from 'path';
 import YAML from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
-import subscriptionRoutes from './routes/subscriptions.js';
-import { errorHandler } from './middleware/errorHandler.js';
-import { register } from './metrics/prom.js';
+import subscriptionRoutes from '@domains/subscription/subscription.routes.js';
+import { errorHandler } from '@middlewares/error-handler.middleware.js';
+import { register } from '@utilities/metrics/prom.js';
 
 const app = express();
 

@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { apiKeyAuth } from '../middleware/auth.js';
-import * as subscriptionController from '../controllers/subscriptionController.js';
+import { apiKeyAuth } from '@middlewares/auth.middleware.js';
+import * as subscriptionController from './subscription.controller.js';
 
 const router = Router();
 

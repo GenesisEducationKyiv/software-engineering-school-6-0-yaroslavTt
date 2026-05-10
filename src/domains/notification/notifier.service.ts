@@ -1,5 +1,5 @@
 import nodemailer, { Transporter } from 'nodemailer';
-import { environmentConfig } from '../config/environment.js';
+import { environmentConfig } from '@config/environment.js';
 
 let transporter: Transporter | null = null;
 
