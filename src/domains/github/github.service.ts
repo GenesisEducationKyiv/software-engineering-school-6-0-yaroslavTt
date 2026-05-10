@@ -1,7 +1,8 @@
-import type { AxiosInstance } from 'axios';
 import axios from 'axios';
-import type { GithubRelease } from './dto/github-release.dto';
 import { RateLimitException } from '@exceptions/rate-limit.exception';
+import { githubRequestsTotal } from '@utilities/metrics/prom';
+import type { AxiosInstance } from 'axios';
+import type { GithubRelease } from './dto/github-release.dto';
 import type { IGithubService } from './interface/github.service.interface';
 import type { ICacheService } from '@utilities/redis/interface/cache.service.interface';
 
@@ -19,9 +20,13 @@ export class GithubService implements IGithubService {
         try {
             await this.httpClient.get(`/repos/${owner}/${repo}`);
             await this.cacheService.cacheSet(cacheKey, true);
+            githubRequestsTotal.inc({ status: 'success' });
             return true;
         } catch (err) {
-            if (axios.isAxiosError(err) && err.response?.status === 404) return false;
+            if (axios.isAxiosError(err) && err.response?.status === 404) {
+                githubRequestsTotal.inc({ status: 'not_found' });
+                return false;
+            }
             this.handleRateLimit(err);
         }
     }
@@ -36,7 +41,10 @@ export class GithubService implements IGithubService {
             await this.cacheService.cacheSet(cacheKey, data);
             return data;
         } catch (err) {
-            if (axios.isAxiosError(err) && err.response?.status === 404) return null;
+            if (axios.isAxiosError(err) && err.response?.status === 404) {
+                githubRequestsTotal.inc({ status: 'not_found' });
+                return null;
+            }
             this.handleRateLimit(err);
         }
     }
@@ -44,8 +52,10 @@ export class GithubService implements IGithubService {
     private handleRateLimit(err: unknown): never {
         if (axios.isAxiosError(err) && err.response?.status === 429) {
             const reset = err.response.headers['x-ratelimit-reset'];
+            githubRequestsTotal.inc({ status: 'rate_limited' });
             throw new RateLimitException('GitHub API rate limit exceeded', reset ? parseInt(reset, 10) : null);
         }
+        githubRequestsTotal.inc({ status: 'error' });
         throw err;
     }
 }

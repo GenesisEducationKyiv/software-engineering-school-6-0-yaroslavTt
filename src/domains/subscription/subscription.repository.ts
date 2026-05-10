@@ -84,4 +84,9 @@ export class SubscriptionRepository implements ISubscriptionRepository {
             params.tag,
         ]);
     }
+
+    async countConfirmed(): Promise<number> {
+        const result = await this.pool.query('SELECT COUNT(*) FROM subscriptions WHERE confirmed = TRUE');
+        return parseInt(result.rows[0].count, 10);
+    }
 }

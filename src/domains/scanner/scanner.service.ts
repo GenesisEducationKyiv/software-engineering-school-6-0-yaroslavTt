@@ -1,4 +1,5 @@
 import { RateLimitException } from '@exceptions/rate-limit.exception';
+import { activeSubscriptions } from '@utilities/metrics/prom';
 import type { ISubscriptionRepository } from '@domains/subscription/interface/subscription.repository.interface';
 import type { IGithubService } from '@domains/github/interface/github.service.interface';
 import type { INotifierService } from '@domains/notification/interface/notifier.service.interface';
@@ -72,5 +73,8 @@ export class ScannerService implements IScannerService {
                 console.error(`[scanner] Error processing ${owner}/${repo}:`, err);
             }
         }
+
+        const count = await this.subscriptionRepository.countConfirmed();
+        activeSubscriptions.set(count);
     }
 }

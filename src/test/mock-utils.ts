@@ -48,5 +48,6 @@ export function createMockSubscriptionRepository(): jest.Mocked<ISubscriptionRep
         findAllDistinctReposConfirmed: jest.fn(),
         findConfirmedSubscribersByRepo: jest.fn(),
         updateLastSeenTag: jest.fn(),
+        countConfirmed: jest.fn().mockResolvedValue(0),
     };
 }

@@ -17,6 +17,7 @@ const repoConfirmed = { owner: 'a', repo: 'b' };
 
 beforeEach(() => {
     jest.resetAllMocks();
+    mockSubscriptionRepository.countConfirmed.mockResolvedValue(0);
     scannerService = new ScannerService(
         mockSubscriptionRepository,
         mockGithubService,
