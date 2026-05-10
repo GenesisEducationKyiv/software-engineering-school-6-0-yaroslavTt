@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import { environmentConfig } from '@config/environment';
 import { SubscriptionRow } from './dto/subscription-row.dto';
 import { NotFoundException } from '@exceptions/not-found.exception';
@@ -8,6 +7,7 @@ import type { IGithubService } from '@domains/github/interface/github.service.in
 import type { INotifierService } from '@domains/notification/interface/notifier.service.interface';
 import type { SubscribePayload } from './dto/subscribe-payload.dto';
 import type { IValidator } from '@common/validator.interface';
+import type { ITokenGenerator } from '@utilities/token/interface/token-generator.interface';
 
 export class SubscriptionService {
     constructor(
@@ -16,6 +16,7 @@ export class SubscriptionService {
         private readonly notifierService: INotifierService,
         private readonly subscriptionValidator: IValidator<SubscribePayload>,
         private readonly emailValidator: IValidator<string>,
+        private readonly tokenGenerator: ITokenGenerator,
     ) {}
 
     async subscribe(params: SubscribePayload): Promise<void> {
@@ -30,8 +31,8 @@ export class SubscriptionService {
             throw new NotFoundException(`Repository ${repo} not found on GitHub`);
         }
 
-        const confirmToken = crypto.randomBytes(32).toString('hex');
-        const unsubToken = crypto.randomBytes(32).toString('hex');
+        const confirmToken = this.tokenGenerator.generate();
+        const unsubToken = this.tokenGenerator.generate();
 
         const created = await this.subscriptionRepository.create({
             email,

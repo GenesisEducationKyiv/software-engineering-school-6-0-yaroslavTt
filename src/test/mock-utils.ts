@@ -2,6 +2,7 @@ import type { IGithubService } from '@domains/github/interface/github.service.in
 import type { INotifierService } from '@domains/notification/interface/notifier.service.interface';
 import type { ISubscriptionRepository } from '@domains/subscription/interface/subscription.repository.interface';
 import type { ICacheService } from '@utilities/redis/interface/cache.service.interface';
+import type { ITokenGenerator } from '@utilities/token/interface/token-generator.interface';
 
 export function createMockCacheService(): jest.Mocked<ICacheService> {
     return {
@@ -22,6 +23,10 @@ export function createMockNotifierService(): jest.Mocked<INotifierService> {
         sendConfirmationEmail: jest.fn(),
         sendReleaseEmail: jest.fn(),
     };
+}
+
+export function createMockTokenGenerator(): jest.Mocked<ITokenGenerator> {
+    return { generate: jest.fn().mockReturnValue('test-token') };
 }
 
 export function createMockSubscriptionRepository(): jest.Mocked<ISubscriptionRepository> {

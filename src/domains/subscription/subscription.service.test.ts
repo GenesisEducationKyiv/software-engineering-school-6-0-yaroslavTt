@@ -3,13 +3,19 @@ import { NotFoundException } from '@exceptions/not-found.exception';
 import { ConflictException } from '@exceptions/conflict.exception';
 import { RateLimitException } from '@exceptions/rate-limit.exception';
 import { SubscriptionService } from './subscription.service';
-import { createMockGithubService, createMockNotifierService, createMockSubscriptionRepository } from '@test/mock-utils';
+import {
+    createMockGithubService,
+    createMockNotifierService,
+    createMockSubscriptionRepository,
+    createMockTokenGenerator,
+} from '@test/mock-utils';
 import { SubscriptionValidator } from './validators/subscription.validator';
 import { EmailValidator } from './validators/email.validator';
 
 const mockSubscriptionRepository = createMockSubscriptionRepository();
 const mockGithubService = createMockGithubService();
 const mockNotifierService = createMockNotifierService();
+const mockTokenGenerator = createMockTokenGenerator();
 
 const subscriptionValidator = new SubscriptionValidator();
 const emailValidator = new EmailValidator();
@@ -35,6 +41,7 @@ beforeEach(() => {
         mockNotifierService,
         subscriptionValidator,
         emailValidator,
+        mockTokenGenerator,
     );
 });
 
@@ -44,11 +51,23 @@ describe('subscribe', () => {
     it('creates a subscription and sends confirmation email', async () => {
         mockGithubService.repoExists.mockResolvedValue(true);
         mockSubscriptionRepository.create.mockResolvedValue(validSubscription);
+        mockTokenGenerator.generate.mockReturnValueOnce('confirm-token').mockReturnValueOnce('unsub-token');
 
-        const actualResult = await subscriptionService.subscribe(validSubscriptionParams);
+        await subscriptionService.subscribe(validSubscriptionParams);
 
-        expect(actualResult).toBeUndefined();
-        expect(mockNotifierService.sendConfirmationEmail).toHaveBeenCalledTimes(1);
+        expect(mockSubscriptionRepository.create).toHaveBeenCalledWith({
+            email: validSubscriptionParams.email,
+            owner: 'golang',
+            repo: 'go',
+            confirmToken: 'confirm-token',
+            unsubToken: 'unsub-token',
+        });
+        expect(mockNotifierService.sendConfirmationEmail).toHaveBeenCalledWith({
+            to: validSubscriptionParams.email,
+            owner: 'golang',
+            repo: 'go',
+            confirmUrl: expect.stringContaining('confirm-token'),
+        });
     });
 
     it('throws ValidationException for invalid email', async () => {
