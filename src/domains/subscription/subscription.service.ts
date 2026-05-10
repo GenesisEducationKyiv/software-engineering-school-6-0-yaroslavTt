@@ -1,4 +1,4 @@
-import { SubscriptionRow } from './dto/subscription-row.dto';
+import type { SubscriptionRow } from './dto/subscription-row.dto';
 import { NotFoundException } from '@exceptions/not-found.exception';
 import { ConflictException } from '@exceptions/conflict.exception';
 import type { ISubscriptionRepository } from './interface/subscription.repository.interface';

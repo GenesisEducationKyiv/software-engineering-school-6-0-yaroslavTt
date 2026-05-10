@@ -1,7 +1,7 @@
 import type { SubscriptionRow } from './dto/subscription-row.dto';
 import type { Subscription } from './dto/subscription.dto';
 import type { ISubscriptionRepository } from './interface/subscription.repository.interface';
-import { Pool } from 'pg';
+import type { Pool } from 'pg';
 
 export class SubscriptionRepository implements ISubscriptionRepository {
     constructor(private readonly pool: Pool) {}

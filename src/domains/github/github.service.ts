@@ -1,4 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
+import type { AxiosInstance } from 'axios';
+import axios from 'axios';
 import type { GithubRelease } from './dto/github-release.dto';
 import { RateLimitException } from '@exceptions/rate-limit.exception';
 import type { IGithubService } from './interface/github.service.interface';

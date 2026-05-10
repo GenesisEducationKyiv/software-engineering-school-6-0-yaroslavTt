@@ -1,4 +1,5 @@
-import express, { Express } from 'express';
+import type { Express } from 'express';
+import express from 'express';
 import morgan from 'morgan';
 import path from 'path';
 import YAML from 'yamljs';
@@ -6,7 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import { createSubscriptionRouter } from '@domains/subscription/subscription.routes';
 import { errorHandler } from '@middlewares/error-handler.middleware';
 import { register } from '@utilities/metrics/prom';
-import { SubscriptionService } from '@domains/subscription/subscription.service';
+import type { SubscriptionService } from '@domains/subscription/subscription.service';
 
 export function createApp(subscriptionService: SubscriptionService): Express {
     const app = express();

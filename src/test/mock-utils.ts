@@ -3,6 +3,7 @@ import type { INotifierService } from '@domains/notification/interface/notifier.
 import type { ISubscriptionRepository } from '@domains/subscription/interface/subscription.repository.interface';
 import type { ICacheService } from '@utilities/redis/interface/cache.service.interface';
 import type { ITokenGenerator } from '@utilities/token/interface/token-generator.interface';
+import type { IEmailTemplateBuilder } from '@domains/notification/interface/email-template-builder.interface';
 
 export function createMockCacheService(): jest.Mocked<ICacheService> {
     return {
@@ -22,6 +23,13 @@ export function createMockNotifierService(): jest.Mocked<INotifierService> {
     return {
         sendConfirmationEmail: jest.fn(),
         sendReleaseEmail: jest.fn(),
+    };
+}
+
+export function createMockEmailTemplateBuilder(): jest.Mocked<IEmailTemplateBuilder> {
+    return {
+        confirmationEmail: jest.fn().mockReturnValue({ subject: 'subject', html: '<p>html</p>' }),
+        releaseEmail: jest.fn().mockReturnValue({ subject: 'subject', html: '<p>html</p>' }),
     };
 }
 

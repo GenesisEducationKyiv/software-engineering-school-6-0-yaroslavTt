@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+import type Redis from 'ioredis';
 import { environmentConfig } from '@config/environment';
 import type { ICacheService } from './interface/cache.service.interface';
 

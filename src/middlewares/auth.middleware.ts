@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { environmentConfig } from '@config/environment';
 
 export function apiKeyAuth(req: Request, res: Response, next: NextFunction): void {

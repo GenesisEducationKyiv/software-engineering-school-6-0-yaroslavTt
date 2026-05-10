@@ -15,6 +15,7 @@ import { SubscriptionValidator } from '@domains/subscription/validators/subscrip
 import { EmailValidator } from '@domains/subscription/validators/email.validator';
 import { SubscriptionUrlBuilder } from '@domains/subscription/utilities/subscription-url-builder';
 import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
+import { EmailTemplateBuilder } from '@domains/notification/utilities/email-template-builder';
 
 async function main(): Promise<void> {
     // 1. Run DB migrations
@@ -46,7 +47,8 @@ async function main(): Promise<void> {
             pass: environmentConfig.smtpPass,
         },
     });
-    const notifierService = new NotifierService(transporter);
+    const emailTemplateBuilder = new EmailTemplateBuilder();
+    const notifierService = new NotifierService(transporter, emailTemplateBuilder);
 
     // 5. Initialize Subscription repository
     const subscriptionRepository = new SubscriptionRepository(pool);

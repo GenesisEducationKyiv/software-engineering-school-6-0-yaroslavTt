@@ -1,9 +1,13 @@
-import { Transporter } from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 import { environmentConfig } from '@config/environment';
 import type { INotifierService } from './interface/notifier.service.interface';
+import type { IEmailTemplateBuilder } from './interface/email-template-builder.interface';
 
 export class NotifierService implements INotifierService {
-    constructor(private readonly transporter: Transporter) {}
+    constructor(
+        private readonly transporter: Transporter,
+        private readonly emailTemplateBuilder: IEmailTemplateBuilder,
+    ) {}
 
     async sendConfirmationEmail(params: {
         to: string;
@@ -12,17 +16,14 @@ export class NotifierService implements INotifierService {
         confirmUrl: string;
     }): Promise<void> {
         const { to, owner, repo, confirmUrl } = params;
+
         await this.transporter.sendMail({
             from: environmentConfig.emailFrom,
             to,
-            subject: `Confirm your subscription to ${owner}/${repo} releases`,
-            html: `
-                <p>You requested to subscribe to release notifications for <strong>${owner}/${repo}</strong>.</p>
-                <p><a href="${confirmUrl}">Click here to confirm your subscription</a></p>
-                <p>If you did not request this, you can safely ignore this email.</p>
-            `,
+            ...this.emailTemplateBuilder.confirmationEmail({ owner, repo, confirmUrl }),
         });
     }
+
     async sendReleaseEmail(params: {
         to: string;
         owner: string;
@@ -33,18 +34,18 @@ export class NotifierService implements INotifierService {
         unsubscribeUrl: string;
     }): Promise<void> {
         const { to, owner, repo, tagName, releaseName, releaseUrl, unsubscribeUrl } = params;
+
         await this.transporter.sendMail({
             from: environmentConfig.emailFrom,
             to,
-            subject: `New release: ${owner}/${repo} — ${tagName}`,
-            html: `
-                <p>A new release of <strong><a href="https://github.com/${owner}/${repo}">${owner}/${repo}</a></strong> is available.</p>
-                <p><strong>Tag:</strong> ${tagName}</p>
-                <p><strong>Name:</strong> ${releaseName}</p>
-                <p><a href="${releaseUrl}">View release on GitHub</a></p>
-                <hr/>
-                <p style="font-size:12px"><a href="${unsubscribeUrl}">Unsubscribe</a></p>
-            `,
+            ...this.emailTemplateBuilder.releaseEmail({
+                owner,
+                repo,
+                tagName,
+                releaseName,
+                releaseUrl,
+                unsubscribeUrl,
+            }),
         });
     }
 }

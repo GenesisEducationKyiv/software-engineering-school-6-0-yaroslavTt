@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { apiKeyAuth } from '@middlewares/auth.middleware';
-import { SubscriptionService } from './subscription.service';
+import type { SubscriptionService } from './subscription.service';
 import { SubscriptionController } from './subscription.controller';
 
 export function createSubscriptionRouter(subscriptionService: SubscriptionService): Router {

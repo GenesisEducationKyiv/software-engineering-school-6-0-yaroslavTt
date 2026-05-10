@@ -1,4 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
+import type { AxiosInstance } from 'axios';
+import axios from 'axios';
 import { RateLimitException } from '@exceptions/rate-limit.exception';
 import { GithubService } from './github.service';
 import { createMockCacheService } from '@test/mock-utils';

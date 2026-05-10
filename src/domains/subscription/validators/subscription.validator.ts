@@ -1,6 +1,6 @@
 import { ValidationException } from '@exceptions/validation.exception';
 import type { IValidator } from '@common/validator.interface';
-import { SubscribePayload } from '../dto/subscribe-payload.dto';
+import type { SubscribePayload } from '../dto/subscribe-payload.dto';
 import { EMAIL_RE, REPO_RE } from './constants';
 
 export class SubscriptionValidator implements IValidator<SubscribePayload> {
