@@ -12,6 +12,8 @@ import { SubscriptionRepository } from '@domains/subscription/subscription.repos
 import { SubscriptionService } from '@domains/subscription/subscription.service';
 import { SubscriptionValidator } from '@domains/subscription/validators/subscription.validator';
 import { EmailValidator } from '@domains/subscription/validators/email.validator';
+import { SubscriptionUrlBuilder } from '@domains/subscription/utilities/subscription-url-builder';
+import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
 
 async function main(): Promise<void> {
     // 1. Run DB migrations
@@ -51,16 +53,25 @@ async function main(): Promise<void> {
     // 6. Initialize Subscription service
     const subscriptionValidator = new SubscriptionValidator();
     const emailValidator = new EmailValidator();
+    const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
+    const cryptoTokenGenerator = new CryptoTokenGenerator();
     const subscriptionService = new SubscriptionService(
         subscriptionRepository,
         githubService,
         notifierService,
         subscriptionValidator,
         emailValidator,
+        cryptoTokenGenerator,
+        subscriptionUrlBuilder,
     );
 
     // 7. Start scanner cron
-    const scannerService = new ScannerService(subscriptionRepository, githubService, notifierService);
+    const scannerService = new ScannerService(
+        subscriptionRepository,
+        githubService,
+        notifierService,
+        subscriptionUrlBuilder,
+    );
     scannerService.start();
 
     // 8. Start HTTP server

@@ -11,6 +11,7 @@ import {
 } from '@test/mock-utils';
 import { SubscriptionValidator } from './validators/subscription.validator';
 import { EmailValidator } from './validators/email.validator';
+import { SubscriptionUrlBuilder } from './utilities/subscription-url-builder';
 
 const mockSubscriptionRepository = createMockSubscriptionRepository();
 const mockGithubService = createMockGithubService();
@@ -19,6 +20,7 @@ const mockTokenGenerator = createMockTokenGenerator();
 
 const subscriptionValidator = new SubscriptionValidator();
 const emailValidator = new EmailValidator();
+const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
 let subscriptionService: SubscriptionService;
 
 const validSubscription = {
@@ -42,6 +44,7 @@ beforeEach(() => {
         subscriptionValidator,
         emailValidator,
         mockTokenGenerator,
+        subscriptionUrlBuilder,
     );
 });
 

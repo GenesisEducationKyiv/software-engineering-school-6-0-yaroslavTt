@@ -4,12 +4,14 @@ import { RateLimitException } from '@exceptions/rate-limit.exception';
 import type { ISubscriptionRepository } from '@domains/subscription/interface/subscription.repository.interface';
 import type { IGithubService } from '@domains/github/interface/github.service.interface';
 import type { INotifierService } from '@domains/notification/interface/notifier.service.interface';
+import type { ISubscriptionUrlBuilder } from '@domains/subscription/interface/subscription-url-builder.interface';
 
 export class ScannerService {
     constructor(
         private readonly subscriptionRepository: ISubscriptionRepository,
         private readonly githubService: IGithubService,
         private readonly notifierService: INotifierService,
+        private readonly urlBuilder: ISubscriptionUrlBuilder,
     ) {}
 
     async scan(): Promise<void> {
@@ -45,7 +47,7 @@ export class ScannerService {
 
                 // New release detected — notify all subscribers
                 for (const subscriber of subscribers) {
-                    const unsubscribeUrl = `${environmentConfig.appBaseUrl}/api/unsubscribe/${subscriber.unsub_token}`;
+                    const unsubscribeUrl = this.urlBuilder.unsubscribeUrl(subscriber.unsub_token);
                     await this.notifierService.sendReleaseEmail({
                         to: subscriber.email,
                         owner,

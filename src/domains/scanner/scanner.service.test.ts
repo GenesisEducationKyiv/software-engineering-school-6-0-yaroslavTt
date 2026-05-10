@@ -4,10 +4,13 @@ import { ScannerService } from './scanner.service';
 
 jest.mock('node-cron', () => ({ schedule: jest.fn() }));
 import cron from 'node-cron';
+import { SubscriptionUrlBuilder } from '@domains/subscription/utilities/subscription-url-builder';
 
 const mockSubscriptionRepository = createMockSubscriptionRepository();
 const mockGithubService = createMockGithubService();
 const mockNotifierService = createMockNotifierService();
+
+const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
 let scannerService: ScannerService;
 
 const release = { tag_name: 'v2.0', name: 'Release 2.0', html_url: 'http://github.com/r', published_at: '' };
@@ -16,7 +19,12 @@ const repoConfirmed = { owner: 'a', repo: 'b' };
 
 beforeEach(() => {
     jest.resetAllMocks();
-    scannerService = new ScannerService(mockSubscriptionRepository, mockGithubService, mockNotifierService);
+    scannerService = new ScannerService(
+        mockSubscriptionRepository,
+        mockGithubService,
+        mockNotifierService,
+        subscriptionUrlBuilder,
+    );
 });
 
 describe('scan', () => {

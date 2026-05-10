@@ -1,4 +1,3 @@
-import { environmentConfig } from '@config/environment';
 import { SubscriptionRow } from './dto/subscription-row.dto';
 import { NotFoundException } from '@exceptions/not-found.exception';
 import { ConflictException } from '@exceptions/conflict.exception';
@@ -8,6 +7,7 @@ import type { INotifierService } from '@domains/notification/interface/notifier.
 import type { SubscribePayload } from './dto/subscribe-payload.dto';
 import type { IValidator } from '@common/validator.interface';
 import type { ITokenGenerator } from '@utilities/token/interface/token-generator.interface';
+import type { ISubscriptionUrlBuilder } from './interface/subscription-url-builder.interface';
 
 export class SubscriptionService {
     constructor(
@@ -17,6 +17,7 @@ export class SubscriptionService {
         private readonly subscriptionValidator: IValidator<SubscribePayload>,
         private readonly emailValidator: IValidator<string>,
         private readonly tokenGenerator: ITokenGenerator,
+        private readonly urlBuilder: ISubscriptionUrlBuilder,
     ) {}
 
     async subscribe(params: SubscribePayload): Promise<void> {
@@ -46,7 +47,7 @@ export class SubscriptionService {
             throw new ConflictException('This email is already subscribed to that repository');
         }
 
-        const confirmUrl = `${environmentConfig.appBaseUrl}/api/confirm/${confirmToken}`;
+        const confirmUrl = this.urlBuilder.confirmUrl(confirmToken);
         await this.notifierService.sendConfirmationEmail({
             to: email,
             owner,
