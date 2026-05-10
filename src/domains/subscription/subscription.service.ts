@@ -1,32 +1,27 @@
 import crypto from 'crypto';
 import { environmentConfig } from '@config/environment';
 import { SubscriptionRow } from './dto/subscription-row.dto';
-import { ValidationException } from '@exceptions/validation.exception';
 import { NotFoundException } from '@exceptions/not-found.exception';
 import { ConflictException } from '@exceptions/conflict.exception';
 import type { ISubscriptionRepository } from './interface/subscription.repository.interface';
 import type { IGithubService } from '@domains/github/interface/github.service.interface';
 import type { INotifierService } from '@domains/notification/interface/notifier.service.interface';
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const REPO_RE = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/;
+import type { SubscribePayload } from './dto/subscribe-payload.dto';
+import type { IValidator } from '@common/validator.interface';
 
 export class SubscriptionService {
     constructor(
         private readonly subscriptionRepository: ISubscriptionRepository,
         private readonly githubService: IGithubService,
         private readonly notifierService: INotifierService,
+        private readonly subscriptionValidator: IValidator<SubscribePayload>,
+        private readonly emailValidator: IValidator<string>,
     ) {}
 
-    async subscribe(params: { email: string; repo: string }): Promise<void> {
+    async subscribe(params: SubscribePayload): Promise<void> {
         const { email, repo } = params;
 
-        if (!EMAIL_RE.test(email)) {
-            throw new ValidationException('Invalid email address');
-        }
-        if (!REPO_RE.test(repo)) {
-            throw new ValidationException('Invalid repo format — expected owner/repo');
-        }
+        this.subscriptionValidator.validate(params);
 
         const [owner, repoName] = repo.split('/');
 
@@ -76,9 +71,8 @@ export class SubscriptionService {
     }
 
     async getSubscriptions(email: string): Promise<SubscriptionRow[]> {
-        if (!EMAIL_RE.test(email)) {
-            throw new ValidationException('Invalid email address');
-        }
+        this.emailValidator.validate(email);
+
         return this.subscriptionRepository.findConfirmedByEmail(email);
     }
 }

@@ -35,5 +35,6 @@ module.exports = {
         '@middlewares/(.*)': '<rootDir>/src/middlewares/$1',
         '@utilities/(.*)': '<rootDir>/src/utilities/$1',
         '@test/(.*)': '<rootDir>/src/test/$1',
+        '@common/(.*)': '<rootDir>/src/common/$1',
     },
 };

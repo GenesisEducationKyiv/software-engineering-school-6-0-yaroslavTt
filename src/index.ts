@@ -10,6 +10,8 @@ import nodemailer from 'nodemailer';
 import { NotifierService } from '@domains/notification/notifier.service';
 import { SubscriptionRepository } from '@domains/subscription/subscription.repository';
 import { SubscriptionService } from '@domains/subscription/subscription.service';
+import { SubscriptionValidator } from '@domains/subscription/validators/subscription.validator';
+import { EmailValidator } from '@domains/subscription/validators/email.validator';
 
 async function main(): Promise<void> {
     // 1. Run DB migrations
@@ -47,7 +49,15 @@ async function main(): Promise<void> {
     const subscriptionRepository = new SubscriptionRepository(pool);
 
     // 6. Initialize Subscription service
-    const subscriptionService = new SubscriptionService(subscriptionRepository, githubService, notifierService);
+    const subscriptionValidator = new SubscriptionValidator();
+    const emailValidator = new EmailValidator();
+    const subscriptionService = new SubscriptionService(
+        subscriptionRepository,
+        githubService,
+        notifierService,
+        subscriptionValidator,
+        emailValidator,
+    );
 
     // 7. Start scanner cron
     const scannerService = new ScannerService(subscriptionRepository, githubService, notifierService);

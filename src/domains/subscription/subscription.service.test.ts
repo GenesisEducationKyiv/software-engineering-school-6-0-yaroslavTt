@@ -4,11 +4,15 @@ import { ConflictException } from '@exceptions/conflict.exception';
 import { RateLimitException } from '@exceptions/rate-limit.exception';
 import { SubscriptionService } from './subscription.service';
 import { createMockGithubService, createMockNotifierService, createMockSubscriptionRepository } from '@test/mock-utils';
+import { SubscriptionValidator } from './validators/subscription.validator';
+import { EmailValidator } from './validators/email.validator';
 
 const mockSubscriptionRepository = createMockSubscriptionRepository();
 const mockGithubService = createMockGithubService();
 const mockNotifierService = createMockNotifierService();
 
+const subscriptionValidator = new SubscriptionValidator();
+const emailValidator = new EmailValidator();
 let subscriptionService: SubscriptionService;
 
 const validSubscription = {
@@ -25,7 +29,13 @@ const validSubscription = {
 
 beforeEach(() => {
     jest.resetAllMocks();
-    subscriptionService = new SubscriptionService(mockSubscriptionRepository, mockGithubService, mockNotifierService);
+    subscriptionService = new SubscriptionService(
+        mockSubscriptionRepository,
+        mockGithubService,
+        mockNotifierService,
+        subscriptionValidator,
+        emailValidator,
+    );
 });
 
 describe('subscribe', () => {

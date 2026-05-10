@@ -21,7 +21,8 @@
             "@middlewares/*": ["./src/middlewares/*"],
             "@exceptions/*": ["./src/exceptions/*"],
             "@db/*": ["./src/db/*"],
-            "@test/*": ["./src/test/*"]
+            "@test/*": ["./src/test/*"],
+            "@common/*": ["./src/common/*"]
         }
     },
     "include": ["src/**/*"],
