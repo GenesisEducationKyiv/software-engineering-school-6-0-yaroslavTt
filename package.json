@@ -4,7 +4,7 @@
     "description": "API service for subscribing to GitHub repository release notifications via email",
     "main": "dist/index.js",
     "scripts": {
-        "build": "tsc",
+        "build": "tsc && tsc-alias",
         "start": "node dist/index.js",
         "dev": "ts-node src/index.ts",
         "test": "jest --runInBand",
@@ -51,6 +51,7 @@
         "supertest": "^7.0.0",
         "ts-jest": "^29.1.5",
         "ts-node": "^10.9.2",
+        "tsc-alias": "^1.8.17",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.34.1"
     }
