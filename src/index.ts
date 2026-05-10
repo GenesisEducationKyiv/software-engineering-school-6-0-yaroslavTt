@@ -12,7 +12,6 @@ import { NotifierService } from '@domains/notification/notifier.service';
 import { SubscriptionRepository } from '@domains/subscription/subscription.repository';
 import { SubscriptionService } from '@domains/subscription/subscription.service';
 import { SubscriptionValidator } from '@domains/subscription/validators/subscription.validator';
-import { EmailValidator } from '@domains/subscription/validators/email.validator';
 import { SubscriptionUrlBuilder } from '@domains/subscription/utilities/subscription-url-builder';
 import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
 import { EmailTemplateBuilder } from '@domains/notification/utilities/email-template-builder';
@@ -55,7 +54,6 @@ async function main(): Promise<void> {
 
     // 6. Initialize Subscription service
     const subscriptionValidator = new SubscriptionValidator();
-    const emailValidator = new EmailValidator();
     const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
     const cryptoTokenGenerator = new CryptoTokenGenerator();
     const subscriptionService = new SubscriptionService(
@@ -63,7 +61,6 @@ async function main(): Promise<void> {
         githubService,
         notifierService,
         subscriptionValidator,
-        emailValidator,
         cryptoTokenGenerator,
         subscriptionUrlBuilder,
     );

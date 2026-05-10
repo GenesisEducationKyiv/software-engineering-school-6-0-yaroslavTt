@@ -10,7 +10,6 @@ import {
     createMockTokenGenerator,
 } from '@test/mock-utils';
 import { SubscriptionValidator } from './validators/subscription.validator';
-import { EmailValidator } from './validators/email.validator';
 import { SubscriptionUrlBuilder } from './utilities/subscription-url-builder';
 
 const mockSubscriptionRepository = createMockSubscriptionRepository();
@@ -19,7 +18,6 @@ const mockNotifierService = createMockNotifierService();
 const mockTokenGenerator = createMockTokenGenerator();
 
 const subscriptionValidator = new SubscriptionValidator();
-const emailValidator = new EmailValidator();
 const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
 let subscriptionService: SubscriptionService;
 
@@ -42,7 +40,6 @@ beforeEach(() => {
         mockGithubService,
         mockNotifierService,
         subscriptionValidator,
-        emailValidator,
         mockTokenGenerator,
         subscriptionUrlBuilder,
     );
@@ -139,9 +136,5 @@ describe('getSubscriptions', () => {
         mockSubscriptionRepository.findConfirmedByEmail.mockResolvedValue(rows);
         const result = await subscriptionService.getSubscriptions('u@e.com');
         expect(result).toEqual(rows);
-    });
-
-    it('throws ValidationException for invalid email', async () => {
-        await expect(subscriptionService.getSubscriptions('bad')).rejects.toBeInstanceOf(ValidationException);
     });
 });

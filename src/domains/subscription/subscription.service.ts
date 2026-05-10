@@ -16,7 +16,6 @@ export class SubscriptionService implements ISubscriptionService {
         private readonly githubService: IGithubService,
         private readonly notifierService: INotifierService,
         private readonly subscriptionValidator: IValidator<SubscribePayload>,
-        private readonly emailValidator: IValidator<string>,
         private readonly tokenGenerator: ITokenGenerator,
         private readonly urlBuilder: ISubscriptionUrlBuilder,
     ) {}
@@ -74,8 +73,6 @@ export class SubscriptionService implements ISubscriptionService {
     }
 
     async getSubscriptions(email: string): Promise<SubscriptionRow[]> {
-        this.emailValidator.validate(email);
-
         return this.subscriptionRepository.findConfirmedByEmail(email);
     }
 }
