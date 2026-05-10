@@ -4,6 +4,7 @@ import { pool, runMigrations } from '@db/index';
 import { RedisService } from '@utilities/redis/redis.service';
 import { GithubService } from '@domains/github/github.service';
 import { ScannerService } from '@domains/scanner/scanner.service';
+import { ScannerScheduler } from '@domains/scanner/scanner.scheduler';
 import { createApp } from './app';
 import { environmentConfig } from '@config/environment';
 import nodemailer from 'nodemailer';
@@ -72,7 +73,8 @@ async function main(): Promise<void> {
         notifierService,
         subscriptionUrlBuilder,
     );
-    scannerService.start();
+    const scannerScheduler = new ScannerScheduler(scannerService);
+    scannerScheduler.start();
 
     // 8. Start HTTP server
     const app = createApp(subscriptionService);

@@ -1,12 +1,11 @@
-import cron from 'node-cron';
-import { environmentConfig } from '@config/environment';
 import { RateLimitException } from '@exceptions/rate-limit.exception';
 import type { ISubscriptionRepository } from '@domains/subscription/interface/subscription.repository.interface';
 import type { IGithubService } from '@domains/github/interface/github.service.interface';
 import type { INotifierService } from '@domains/notification/interface/notifier.service.interface';
 import type { ISubscriptionUrlBuilder } from '@domains/subscription/interface/subscription-url-builder.interface';
+import type { IScannerService } from './interface/scanner.service.interface';
 
-export class ScannerService {
+export class ScannerService implements IScannerService {
     constructor(
         private readonly subscriptionRepository: ISubscriptionRepository,
         private readonly githubService: IGithubService,
@@ -73,18 +72,5 @@ export class ScannerService {
                 console.error(`[scanner] Error processing ${owner}/${repo}:`, err);
             }
         }
-    }
-
-    start(): void {
-        console.log(`[scanner] Starting cron: ${environmentConfig.cronSchedule}`);
-        cron.schedule(environmentConfig.cronSchedule, async () => {
-            console.log('[scanner] Scan started');
-            try {
-                await this.scan();
-                console.log('[scanner] Scan complete');
-            } catch (err) {
-                console.error('[scanner] Unexpected error during scan:', err);
-            }
-        });
     }
 }

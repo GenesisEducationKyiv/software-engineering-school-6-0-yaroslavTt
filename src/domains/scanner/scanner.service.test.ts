@@ -2,8 +2,6 @@ import { RateLimitException } from '@exceptions/rate-limit.exception';
 import { createMockGithubService, createMockNotifierService, createMockSubscriptionRepository } from '@test/mock-utils';
 import { ScannerService } from './scanner.service';
 
-jest.mock('node-cron', () => ({ schedule: jest.fn() }));
-import cron from 'node-cron';
 import { SubscriptionUrlBuilder } from '@domains/subscription/utilities/subscription-url-builder';
 
 const mockSubscriptionRepository = createMockSubscriptionRepository();
@@ -116,14 +114,6 @@ describe('scan', () => {
         expect(mockNotifierService.sendReleaseEmail).toHaveBeenCalledTimes(1);
     });
 
-    it('handles unexpected error thrown by scan() inside cron callback', async () => {
-        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockRejectedValue(new Error('DB down'));
-        scannerService.start();
-
-        const callback = (cron.schedule as jest.Mock).mock.calls[0][1];
-        await expect(callback()).resolves.toBeUndefined();
-    });
-
     it('skips repo when no confirmed subscribers found after release check', async () => {
         mockSubscriptionRepository.findAllDistinctReposConfirmed.mockResolvedValue([repoConfirmed]);
         mockGithubService.getLatestRelease.mockResolvedValue(release);
@@ -142,22 +132,5 @@ describe('scan', () => {
         await scannerService.scan();
 
         expect(mockNotifierService.sendReleaseEmail).not.toHaveBeenCalled();
-    });
-});
-
-describe('start', () => {
-    it('start() schedules scan on the configured cron expression', () => {
-        scannerService.start();
-        expect(cron.schedule).toHaveBeenCalledWith(expect.any(String), expect.any(Function));
-    });
-
-    it('start() calls scan() when cron fires', async () => {
-        mockSubscriptionRepository.findAllDistinctReposConfirmed.mockResolvedValue([]);
-        scannerService.start();
-
-        const callback = (cron.schedule as jest.Mock).mock.calls[0][1];
-        await callback();
-
-        expect(mockSubscriptionRepository.findAllDistinctReposConfirmed).toHaveBeenCalled();
     });
 });
