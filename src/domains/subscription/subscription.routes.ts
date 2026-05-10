@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { apiKeyAuth } from '@middlewares/auth.middleware';
-import type { SubscriptionService } from './subscription.service';
 import { SubscriptionController } from './subscription.controller';
+import type { ISubscriptionService } from './interface/subscription.service.interface';
 
-export function createSubscriptionRouter(subscriptionService: SubscriptionService): Router {
+export function createSubscriptionRouter(subscriptionService: ISubscriptionService): Router {
     const router = Router();
     const subscriptionController = new SubscriptionController(subscriptionService);
 

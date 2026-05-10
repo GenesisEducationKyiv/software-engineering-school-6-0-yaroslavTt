@@ -1,11 +1,11 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { SubscriptionService } from './subscription.service';
 import type { SubscribePayload } from './dto/subscribe-payload.dto';
 import type { RequestWithTokenParams } from './dto/confirm-subscription-params.dto';
 import type { GetSubscriptionsQueryParams } from './dto/get-subscriptions-query-params.dto';
+import type { ISubscriptionService } from './interface/subscription.service.interface';
 
 export class SubscriptionController {
-    constructor(private readonly subscriptionService: SubscriptionService) {}
+    constructor(private readonly subscriptionService: ISubscriptionService) {}
 
     async subscribe(
         req: Request<unknown, unknown, SubscribePayload>,
