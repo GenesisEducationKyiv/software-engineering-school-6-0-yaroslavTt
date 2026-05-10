@@ -10,7 +10,7 @@ import {
     createMockTokenGenerator,
 } from '@test/mock-utils';
 import { SubscriptionValidator } from './validators/subscription.validator';
-import { SubscriptionUrlBuilder } from './utilities/subscription-url-builder';
+import { SubscriptionUrlBuilder } from './subscription-url-builder';
 
 const mockSubscriptionRepository = createMockSubscriptionRepository();
 const mockGithubService = createMockGithubService();

@@ -1,4 +1,4 @@
-import type { IEmailTemplateBuilder } from '../interface/email-template-builder.interface';
+import type { IEmailTemplateBuilder } from './interface/email-template-builder.interface';
 
 export class EmailTemplateBuilder implements IEmailTemplateBuilder {
     confirmationEmail(params: { owner: string; repo: string; confirmUrl: string }): { subject: string; html: string } {

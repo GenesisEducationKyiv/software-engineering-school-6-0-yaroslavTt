@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import type { ITokenGenerator } from './interface/token-generator.interface';
+import type { ITokenGenerator } from '../../common/interface/token-generator.interface';
 
 export class CryptoTokenGenerator implements ITokenGenerator {
     generate(): string {

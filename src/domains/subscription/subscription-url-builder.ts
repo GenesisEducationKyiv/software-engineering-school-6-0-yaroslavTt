@@ -1,5 +1,5 @@
 import { environmentConfig } from '@config/environment';
-import type { ISubscriptionUrlBuilder } from '../interface/subscription-url-builder.interface';
+import type { ISubscriptionUrlBuilder } from './interface/subscription-url-builder.interface';
 
 export class SubscriptionUrlBuilder implements ISubscriptionUrlBuilder {
     confirmUrl(token: string): string {

@@ -1,6 +1,6 @@
 import type Redis from 'ioredis';
 import { environmentConfig } from '@config/environment';
-import type { ICacheService } from './interface/cache.service.interface';
+import type { ICacheService } from '../../common/interface/cache.service.interface';
 
 export class RedisService implements ICacheService {
     constructor(private readonly client: Redis) {}

@@ -12,9 +12,9 @@ import { NotifierService } from '@domains/notification/notifier.service';
 import { SubscriptionRepository } from '@domains/subscription/subscription.repository';
 import { SubscriptionService } from '@domains/subscription/subscription.service';
 import { SubscriptionValidator } from '@domains/subscription/validators/subscription.validator';
-import { SubscriptionUrlBuilder } from '@domains/subscription/utilities/subscription-url-builder';
+import { SubscriptionUrlBuilder } from '@domains/subscription/subscription-url-builder';
 import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
-import { EmailTemplateBuilder } from '@domains/notification/utilities/email-template-builder';
+import { EmailTemplateBuilder } from '@domains/notification/email-template-builder';
 
 async function main(): Promise<void> {
     // 1. Run DB migrations

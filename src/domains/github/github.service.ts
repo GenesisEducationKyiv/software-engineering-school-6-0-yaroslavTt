@@ -4,7 +4,7 @@ import { githubRequestsTotal } from '@utilities/metrics/prom';
 import type { AxiosInstance } from 'axios';
 import type { GithubRelease } from './dto/github-release.dto';
 import type { IGithubService } from './interface/github.service.interface';
-import type { ICacheService } from '@utilities/redis/interface/cache.service.interface';
+import type { ICacheService } from '@common/interface/cache.service.interface';
 
 export class GithubService implements IGithubService {
     constructor(

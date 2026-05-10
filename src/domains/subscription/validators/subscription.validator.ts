@@ -1,5 +1,5 @@
 import { ValidationException } from '@exceptions/validation.exception';
-import type { IValidator } from '@common/validator.interface';
+import type { IValidator } from '@common/interface/validator.interface';
 import type { SubscribePayload } from '../dto/subscribe-payload.dto';
 import { EMAIL_RE, REPO_RE } from './constants';
 
