@@ -1,4 +1,3 @@
-import { ValidationException } from '@exceptions/validation.exception';
 import { NotFoundException } from '@exceptions/not-found.exception';
 import { ConflictException } from '@exceptions/conflict.exception';
 import { RateLimitException } from '@exceptions/rate-limit.exception';
@@ -9,7 +8,6 @@ import {
     createMockSubscriptionRepository,
     createMockTokenGenerator,
 } from '@test/mock-utils';
-import { SubscriptionValidator } from './validators/subscription.validator';
 import { SubscriptionUrlBuilder } from './subscription-url-builder';
 
 const mockSubscriptionRepository = createMockSubscriptionRepository();
@@ -17,7 +15,6 @@ const mockGithubService = createMockGithubService();
 const mockNotifierService = createMockNotifierService();
 const mockTokenGenerator = createMockTokenGenerator();
 
-const subscriptionValidator = new SubscriptionValidator();
 const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
 let subscriptionService: SubscriptionService;
 
@@ -39,7 +36,6 @@ beforeEach(() => {
         mockSubscriptionRepository,
         mockGithubService,
         mockNotifierService,
-        subscriptionValidator,
         mockTokenGenerator,
         subscriptionUrlBuilder,
     );
@@ -68,18 +64,6 @@ describe('subscribe', () => {
             repo: 'go',
             confirmUrl: expect.stringContaining('confirm-token'),
         });
-    });
-
-    it('throws ValidationException for invalid email', async () => {
-        await expect(subscriptionService.subscribe({ email: 'bad', repo: 'golang/go' })).rejects.toBeInstanceOf(
-            ValidationException,
-        );
-    });
-
-    it('throws ValidationException for invalid repo format', async () => {
-        await expect(subscriptionService.subscribe({ email: 'u@e.com', repo: 'golang' })).rejects.toBeInstanceOf(
-            ValidationException,
-        );
     });
 
     it('throws NotFoundException when repo does not exist on GitHub', async () => {

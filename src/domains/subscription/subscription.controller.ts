@@ -1,5 +1,3 @@
-import { ValidationException } from '@exceptions/validation.exception';
-import { EMAIL_RE } from './validators/constants';
 import type { Request, Response, NextFunction } from 'express';
 import type { SubscribePayload } from './dto/subscribe-payload.dto';
 import type { RequestWithTokenParams } from './dto/confirm-subscription-params.dto';
@@ -46,9 +44,7 @@ export class SubscriptionController {
         next: NextFunction,
     ): Promise<void> {
         try {
-            const { email } = req.query;
-            if (!email) throw new ValidationException('email query parameter is required');
-            if (!EMAIL_RE.test(email)) throw new ValidationException('Invalid email format');
+            const email = req.query.email!;
             const subs = await this.subscriptionService.getSubscriptions(email);
             res.status(200).json(subs);
         } catch (err) {

@@ -11,7 +11,6 @@ import nodemailer from 'nodemailer';
 import { NotifierService } from '@domains/notification/notifier.service';
 import { SubscriptionRepository } from '@domains/subscription/subscription.repository';
 import { SubscriptionService } from '@domains/subscription/subscription.service';
-import { SubscriptionValidator } from '@domains/subscription/validators/subscription.validator';
 import { SubscriptionUrlBuilder } from '@domains/subscription/subscription-url-builder';
 import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
 import { EmailTemplateBuilder } from '@domains/notification/email-template-builder';
@@ -53,14 +52,12 @@ async function main(): Promise<void> {
     const subscriptionRepository = new SubscriptionRepository(pool);
 
     // 6. Initialize Subscription service
-    const subscriptionValidator = new SubscriptionValidator();
     const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
     const cryptoTokenGenerator = new CryptoTokenGenerator();
     const subscriptionService = new SubscriptionService(
         subscriptionRepository,
         githubService,
         notifierService,
-        subscriptionValidator,
         cryptoTokenGenerator,
         subscriptionUrlBuilder,
     );
