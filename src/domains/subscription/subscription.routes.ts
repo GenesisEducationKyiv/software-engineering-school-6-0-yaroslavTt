@@ -9,13 +9,11 @@ export function createSubscriptionRouter(subscriptionService: ISubscriptionServi
     const router = Router();
     const subscriptionController = new SubscriptionController(subscriptionService);
 
-    router.post('/subscribe', apiKeyAuth, validateSubscribe, (req, res, next) =>
-        subscriptionController.subscribe(req, res, next),
-    );
-    router.get('/confirm/:token', (req, res, next) => subscriptionController.confirm(req, res, next));
-    router.get('/unsubscribe/:token', (req, res, next) => subscriptionController.unsubscribe(req, res, next));
-    router.get('/subscriptions', validateGetSubscriptions, (req, res, next) =>
-        subscriptionController.getSubscriptions(req, res, next),
+    router.post('/subscribe', apiKeyAuth, validateSubscribe, (req, res) => subscriptionController.subscribe(req, res));
+    router.get('/confirm/:token', (req, res) => subscriptionController.confirm(req, res));
+    router.get('/unsubscribe/:token', (req, res) => subscriptionController.unsubscribe(req, res));
+    router.get('/subscriptions', validateGetSubscriptions, (req, res) =>
+        subscriptionController.getSubscriptions(req, res),
     );
 
     return router;
