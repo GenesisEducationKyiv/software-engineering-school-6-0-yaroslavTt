@@ -1,0 +1,55 @@
+services:
+    app:
+        build: .
+        ports:
+            - '3000:3000'
+        environment:
+            NODE_ENV: test
+            DATABASE_URL: postgresql://postgres:postgres@db:5432/ghnotify_e2e
+            REDIS_URL: redis://redis:6379
+            SMTP_HOST: mailpit
+            SMTP_PORT: 1025
+            SMTP_USER: ''
+            SMTP_PASS: ''
+            EMAIL_FROM: 'GitHub Notifier <noreply@example.com>'
+            APP_BASE_URL: http://localhost:3000
+            CRON_SCHEDULE: '*/5 * * * *'
+            GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+        depends_on:
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            mailpit:
+                condition: service_started
+        healthcheck:
+            test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/health || exit 1']
+            interval: 5s
+            timeout: 5s
+            retries: 12
+
+    db:
+        image: postgres:16-alpine
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: ghnotify_e2e
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+
+    redis:
+        image: redis:7-alpine
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 5s
+            timeout: 3s
+            retries: 10
+
+    mailpit:
+        image: axllent/mailpit
+        ports:
+            - '1025:1025'
+            - '8025:8025'

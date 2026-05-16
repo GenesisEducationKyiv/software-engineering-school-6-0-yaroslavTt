@@ -44,11 +44,13 @@ export class SubscriptionService implements ISubscriptionService {
         }
 
         const confirmUrl = this.urlBuilder.confirmUrl(confirmToken);
+        const unsubscribeUrl = this.urlBuilder.unsubscribeUrl(unsubToken);
         await this.notifierService.sendConfirmationEmail({
             to: email,
             owner,
             repo: repoName,
             confirmUrl,
+            unsubscribeUrl,
         });
     }
 

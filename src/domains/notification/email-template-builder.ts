@@ -1,8 +1,11 @@
 import type { IEmailTemplateBuilder } from './interface/email-template-builder.interface';
 
 export class EmailTemplateBuilder implements IEmailTemplateBuilder {
-    confirmationEmail(params: { owner: string; repo: string; confirmUrl: string }): { subject: string; html: string } {
-        const { owner, repo, confirmUrl } = params;
+    confirmationEmail(params: { owner: string; repo: string; confirmUrl: string; unsubscribeUrl: string }): {
+        subject: string;
+        html: string;
+    } {
+        const { owner, repo, confirmUrl, unsubscribeUrl } = params;
 
         return {
             subject: `Confirm your subscription to ${owner}/${repo} releases`,
@@ -10,6 +13,8 @@ export class EmailTemplateBuilder implements IEmailTemplateBuilder {
                 <p>You requested to subscribe to release notifications for <strong>${owner}/${repo}</strong>.</p>
                 <p><a href="${confirmUrl}">Click here to confirm your subscription</a></p>
                 <p>If you did not request this, you can safely ignore this email.</p>
+                <hr/>
+                <p style="font-size:12px"><a href="${unsubscribeUrl}">Unsubscribe</a></p>
             `,
         };
     }

@@ -3,9 +3,9 @@ import type { ISubscriptionUrlBuilder } from './interface/subscription-url-build
 
 export class SubscriptionUrlBuilder implements ISubscriptionUrlBuilder {
     confirmUrl(token: string): string {
-        return `${environmentConfig.appBaseUrl}/api/confirm/${token}`;
+        return `${environmentConfig.appBaseUrl}/confirm?token=${token}`;
     }
     unsubscribeUrl(token: string): string {
-        return `${environmentConfig.appBaseUrl}/api/unsubscribe/${token}`;
+        return `${environmentConfig.appBaseUrl}/unsubscribe?token=${token}`;
     }
 }

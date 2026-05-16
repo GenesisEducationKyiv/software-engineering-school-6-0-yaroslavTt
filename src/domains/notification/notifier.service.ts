@@ -15,13 +15,14 @@ export class NotifierService implements INotifierService {
         owner: string;
         repo: string;
         confirmUrl: string;
+        unsubscribeUrl: string;
     }): Promise<void> {
-        const { to, owner, repo, confirmUrl } = params;
+        const { to, owner, repo, confirmUrl, unsubscribeUrl } = params;
 
         await this.transporter.sendMail({
             from: environmentConfig.emailFrom,
             to,
-            ...this.emailTemplateBuilder.confirmationEmail({ owner, repo, confirmUrl }),
+            ...this.emailTemplateBuilder.confirmationEmail({ owner, repo, confirmUrl, unsubscribeUrl }),
         });
 
         emailsSentTotal.inc({ type: 'confirmation' });
