@@ -3,11 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import { environmentConfig } from '@config/environment';
 
-export const pool = new Pool({
+export const dbPool = new Pool({
     connectionString: environmentConfig.databaseUrl,
 });
 
-export async function runMigrations(): Promise<void> {
+export async function runMigrations(pool: Pool): Promise<void> {
     const migrationsDir = path.join(__dirname, 'migrations');
     const files = fs
         .readdirSync(migrationsDir)
