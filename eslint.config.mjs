@@ -3,7 +3,7 @@ import globals from 'globals';
 import prettier from 'eslint-config-prettier/flat';
 
 export default [
-    { ignores: ['dist/**', 'node_modules/**'] },
+    { ignores: ['dist/**', 'node_modules/**', 'coverage/**'] },
     ...tseslint.configs.recommended,
     prettier,
     {
@@ -21,6 +21,7 @@ export default [
         rules: {
             'no-console': 'off',
             '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+            '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
         },
     },
 ];

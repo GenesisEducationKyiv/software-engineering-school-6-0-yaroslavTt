@@ -1,28 +1,79 @@
 import Redis from 'ioredis';
-import { runMigrations } from './db/index.js';
-import * as redisService from './utils/redis/redisService.js';
-import { start as startScanner } from './services/scannerService.js';
-import app from './app.js';
-import { environmentConfig } from './config/environment.js';
+import axios from 'axios';
+import { pool, runMigrations } from '@db/index';
+import { RedisService } from '@utilities/redis/redis.service';
+import { GithubService } from '@domains/github/github.service';
+import { ScannerService } from '@domains/scanner/scanner.service';
+import { ScannerScheduler } from '@domains/scanner/scanner.scheduler';
+import { createApp } from './app';
+import { environmentConfig } from '@config/environment';
+import nodemailer from 'nodemailer';
+import { NotifierService } from '@domains/notification/notifier.service';
+import { SubscriptionRepository } from '@domains/subscription/subscription.repository';
+import { SubscriptionService } from '@domains/subscription/subscription.service';
+import { SubscriptionUrlBuilder } from '@domains/subscription/subscription-url-builder';
+import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
+import { EmailTemplateBuilder } from '@domains/notification/email-template-builder';
 
 async function main(): Promise<void> {
     // 1. Run DB migrations
     await runMigrations();
 
-    // 2. Connect Redis (soft dependency)
-    try {
-        const redis = new Redis(environmentConfig.redisUrl);
-        redis.on('error', (err) => console.warn('[redis] connection error:', err.message));
-        redisService.setRedisClient(redis);
-        console.log('[redis] connected');
-    } catch (err) {
-        console.warn('[redis] failed to connect, caching disabled:', err);
-    }
+    // 2. Initialize Redis
+    const redisClient = new Redis(environmentConfig.redisUrl);
+    redisClient.on('error', (err) => console.warn('[redis] connection error:', err.message));
+    const cacheService = new RedisService(redisClient);
+    console.log('[redis] connected');
 
-    // 3. Start scanner cron
-    startScanner();
+    // 3. Initialize GitHub service
+    const githubHttpClient = axios.create({
+        baseURL: environmentConfig.githubApiBase,
+        timeout: 10_000,
+        headers: {
+            Accept: 'application/vnd.github+json',
+            ...(environmentConfig.githubToken ? { Authorization: `Bearer ${environmentConfig.githubToken}` } : {}),
+        },
+    });
+    const githubService = new GithubService(githubHttpClient, cacheService);
 
-    // 4. Start HTTP server
+    // 4. Initialize Notifier service
+    const transporter = nodemailer.createTransport({
+        host: environmentConfig.smtpHost,
+        port: environmentConfig.smtpPort,
+        auth: {
+            user: environmentConfig.smtpUser,
+            pass: environmentConfig.smtpPass,
+        },
+    });
+    const emailTemplateBuilder = new EmailTemplateBuilder();
+    const notifierService = new NotifierService(transporter, emailTemplateBuilder);
+
+    // 5. Initialize Subscription repository
+    const subscriptionRepository = new SubscriptionRepository(pool);
+
+    // 6. Initialize Subscription service
+    const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
+    const cryptoTokenGenerator = new CryptoTokenGenerator();
+    const subscriptionService = new SubscriptionService(
+        subscriptionRepository,
+        githubService,
+        notifierService,
+        cryptoTokenGenerator,
+        subscriptionUrlBuilder,
+    );
+
+    // 7. Start scanner cron
+    const scannerService = new ScannerService(
+        subscriptionRepository,
+        githubService,
+        notifierService,
+        subscriptionUrlBuilder,
+    );
+    const scannerScheduler = new ScannerScheduler(scannerService);
+    scannerScheduler.start();
+
+    // 8. Start HTTP server
+    const app = createApp(subscriptionService);
     app.listen(environmentConfig.port, () => {
         console.log(`[server] Listening on port ${environmentConfig.port}`);
     });
