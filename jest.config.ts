@@ -24,6 +24,7 @@ module.exports = {
     ],
     moduleFileExtensions: ['js', 'json', 'ts'],
     testRegex: '.*\\.test\\.ts$',
+    testPathIgnorePatterns: ['<rootDir>/tests/e2e'],
     modulePaths: ['<rootDir>'],
     moduleNameMapper: {
         '^(\\.{1,2}/.*)\\.js$': '$1',

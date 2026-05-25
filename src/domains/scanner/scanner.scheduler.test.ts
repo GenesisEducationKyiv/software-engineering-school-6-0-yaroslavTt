@@ -6,33 +6,35 @@ import type { IScannerService } from './interface/scanner.service.interface';
 let mockScannerService: jest.Mocked<IScannerService>;
 let scheduler: ScannerScheduler;
 
-beforeEach(() => {
-    jest.resetAllMocks();
-    mockScannerService = { scan: jest.fn() };
-    scheduler = new ScannerScheduler(mockScannerService);
-});
-
-describe('start', () => {
-    it('schedules scan on the configured cron expression', () => {
-        scheduler.start();
-        expect(cron.schedule).toHaveBeenCalledWith(expect.any(String), expect.any(Function));
+describe('ScannerScheduler', () => {
+    beforeEach(() => {
+        jest.resetAllMocks();
+        mockScannerService = { scan: jest.fn() };
+        scheduler = new ScannerScheduler(mockScannerService);
     });
 
-    it('calls scan() when cron fires', async () => {
-        mockScannerService.scan.mockResolvedValue(undefined);
-        scheduler.start();
+    describe('start', () => {
+        it('schedules scan on the configured cron expression', () => {
+            scheduler.start();
+            expect(cron.schedule).toHaveBeenCalledWith(expect.any(String), expect.any(Function));
+        });
 
-        const callback = (cron.schedule as jest.Mock).mock.calls[0][1];
-        await callback();
+        it('calls scan() when cron fires', async () => {
+            mockScannerService.scan.mockResolvedValue(undefined);
+            scheduler.start();
 
-        expect(mockScannerService.scan).toHaveBeenCalledTimes(1);
-    });
+            const callback = (cron.schedule as jest.Mock).mock.calls[0][1];
+            await callback();
 
-    it('swallows unexpected errors thrown by scan() so cron keeps running', async () => {
-        mockScannerService.scan.mockRejectedValue(new Error('DB down'));
-        scheduler.start();
+            expect(mockScannerService.scan).toHaveBeenCalledTimes(1);
+        });
 
-        const callback = (cron.schedule as jest.Mock).mock.calls[0][1];
-        await expect(callback()).resolves.toBeUndefined();
+        it('swallows unexpected errors thrown by scan() so cron keeps running', async () => {
+            mockScannerService.scan.mockRejectedValue(new Error('DB down'));
+            scheduler.start();
+
+            const callback = (cron.schedule as jest.Mock).mock.calls[0][1];
+            await expect(callback()).resolves.toBeUndefined();
+        });
     });
 });

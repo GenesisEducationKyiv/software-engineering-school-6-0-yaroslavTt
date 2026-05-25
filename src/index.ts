@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import axios from 'axios';
-import { pool, runMigrations } from '@db/index';
+import { dbPool, runMigrations } from '@db/index';
 import { RedisService } from '@utilities/redis/redis.service';
 import { GithubService } from '@domains/github/github.service';
 import { ScannerService } from '@domains/scanner/scanner.service';
@@ -17,7 +17,7 @@ import { EmailTemplateBuilder } from '@domains/notification/email-template-build
 
 async function main(): Promise<void> {
     // 1. Run DB migrations
-    await runMigrations();
+    await runMigrations(dbPool);
 
     // 2. Initialize Redis
     const redisClient = new Redis(environmentConfig.redisUrl);
@@ -49,7 +49,7 @@ async function main(): Promise<void> {
     const notifierService = new NotifierService(transporter, emailTemplateBuilder);
 
     // 5. Initialize Subscription repository
-    const subscriptionRepository = new SubscriptionRepository(pool);
+    const subscriptionRepository = new SubscriptionRepository(dbPool);
 
     // 6. Initialize Subscription service
     const subscriptionUrlBuilder = new SubscriptionUrlBuilder();

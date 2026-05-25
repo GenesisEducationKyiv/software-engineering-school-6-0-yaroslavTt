@@ -4,6 +4,23 @@ import type { ISubscriptionRepository } from '@domains/subscription/interface/su
 import type { ICacheService } from '@common/interface/cache.service.interface';
 import type { ITokenGenerator } from '@common/interface/token-generator.interface';
 import type { IEmailTemplateBuilder } from '@domains/notification/interface/email-template-builder.interface';
+import type { ISubscriptionService } from '@domains/subscription/interface/subscription.service.interface';
+import type { Subscription } from '@domains/subscription/dto/subscription.dto';
+
+export function createValidSubscription(overrides: Partial<Subscription> = {}): Subscription {
+    return {
+        id: 'uuid',
+        email: 'u@e.com',
+        owner: 'a',
+        repo: 'b',
+        confirmed: false,
+        confirm_token: 'ct',
+        unsub_token: 'ut',
+        last_seen_tag: null,
+        created_at: new Date(),
+        ...overrides,
+    };
+}
 
 export function createMockCacheService(): jest.Mocked<ICacheService> {
     return {
@@ -28,8 +45,8 @@ export function createMockNotifierService(): jest.Mocked<INotifierService> {
 
 export function createMockEmailTemplateBuilder(): jest.Mocked<IEmailTemplateBuilder> {
     return {
-        confirmationEmail: jest.fn().mockReturnValue({ subject: 'subject', html: '<p>html</p>' }),
-        releaseEmail: jest.fn().mockReturnValue({ subject: 'subject', html: '<p>html</p>' }),
+        confirmationEmail: jest.fn().mockReturnValue({ subject: 'confirmation subject', html: '<p>confirmation</p>' }),
+        releaseEmail: jest.fn().mockReturnValue({ subject: 'release subject', html: '<p>release</p>' }),
     };
 }
 
@@ -49,5 +66,14 @@ export function createMockSubscriptionRepository(): jest.Mocked<ISubscriptionRep
         findConfirmedSubscribersByRepo: jest.fn(),
         updateLastSeenTag: jest.fn(),
         countConfirmed: jest.fn().mockResolvedValue(0),
+    };
+}
+
+export function createMockSubscriptionService(): jest.Mocked<ISubscriptionService> {
+    return {
+        subscribe: jest.fn(),
+        confirmSubscription: jest.fn(),
+        unsubscribe: jest.fn(),
+        getSubscriptions: jest.fn(),
     };
 }

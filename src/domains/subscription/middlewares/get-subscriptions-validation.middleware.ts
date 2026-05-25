@@ -9,7 +9,11 @@ export function validateGetSubscriptions(
     next: NextFunction,
 ): void {
     const { email } = req.query;
-    if (!email) throw new ValidationException('email query parameter is required');
-    if (!EMAIL_RE.test(email)) throw new ValidationException('Invalid email format');
+    if (!email) {
+        throw new ValidationException('email query parameter is required');
+    }
+    if (!EMAIL_RE.test(email)) {
+        throw new ValidationException('Invalid email format');
+    }
     next();
 }
