@@ -9,12 +9,16 @@ import { errorHandler } from '@middlewares/error-handler.middleware';
 import { register } from '@utilities/metrics/prom';
 import type { Express } from 'express';
 import type { ISubscriptionService } from '@domains/subscription/interface/subscription.service.interface';
+import { requestMonitoring } from '@middlewares/request-monitoring.middleware';
 
 export function createApp(subscriptionService: ISubscriptionService): Express {
     const app = express();
 
     app.use(express.json());
     app.use(pinoHttp({ logger }));
+
+    app.use(requestMonitoring);
+
     app.use(express.static(path.join(__dirname, '..', 'public')));
 
     // Swagger UI
