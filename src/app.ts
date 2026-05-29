@@ -1,8 +1,9 @@
 import express from 'express';
-import morgan from 'morgan';
+import pinoHttp from 'pino-http';
 import path from 'path';
 import YAML from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
+import { logger } from '@config/logger';
 import { createSubscriptionRouter } from '@domains/subscription/subscription.routes';
 import { errorHandler } from '@middlewares/error-handler.middleware';
 import { register } from '@utilities/metrics/prom';
@@ -13,7 +14,7 @@ export function createApp(subscriptionService: ISubscriptionService): Express {
     const app = express();
 
     app.use(express.json());
-    app.use(morgan('combined'));
+    app.use(pinoHttp({ logger }));
     app.use(express.static(path.join(__dirname, '..', 'public')));
 
     // Swagger UI
