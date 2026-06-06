@@ -14,6 +14,7 @@ import { SubscriptionService } from '@domains/subscription/subscription.service'
 import { SubscriptionUrlBuilder } from '@domains/subscription/subscription-url-builder';
 import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
 import { EmailTemplateBuilder } from '@domains/notification/email-template-builder';
+import { logger } from '@config/logger';
 
 async function main(): Promise<void> {
     // 1. Run DB migrations
@@ -21,9 +22,9 @@ async function main(): Promise<void> {
 
     // 2. Initialize Redis
     const redisClient = new Redis(environmentConfig.redisUrl);
-    redisClient.on('error', (err) => console.warn('[redis] connection error:', err.message));
+    redisClient.on('error', (err) => logger.warn({ err }, '[redis] Connection error'));
     const cacheService = new RedisService(redisClient);
-    console.log('[redis] connected');
+    logger.info('[redis] Connected');
 
     // 3. Initialize GitHub service
     const githubHttpClient = axios.create({
@@ -75,11 +76,11 @@ async function main(): Promise<void> {
     // 8. Start HTTP server
     const app = createApp(subscriptionService);
     app.listen(environmentConfig.port, () => {
-        console.log(`[server] Listening on port ${environmentConfig.port}`);
+        logger.info({ port: environmentConfig.port }, `[server] Listening`);
     });
 }
 
 main().catch((err) => {
-    console.error('[startup] Fatal error:', err);
+    logger.error({ err }, '[startup] Fatal error');
     process.exit(1);
 });

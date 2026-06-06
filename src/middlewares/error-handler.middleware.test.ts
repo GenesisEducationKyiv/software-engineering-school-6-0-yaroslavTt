@@ -1,6 +1,7 @@
 import { errorHandler } from './error-handler.middleware';
 import type { Request, Response, NextFunction } from 'express';
 import type { HttpException } from '@exceptions/http.exception';
+import { logger } from '@config/logger';
 
 describe('errorHandler', () => {
     const mockRequest = {} as Request;
@@ -24,7 +25,6 @@ describe('errorHandler', () => {
     });
 
     it('falls back to 500 and generic message when status and message are missing', () => {
-        jest.spyOn(console, 'error').mockImplementation(() => {});
         const err = {} as HttpException;
 
         errorHandler(err, mockRequest, mockResponse, mockNext);
@@ -33,21 +33,21 @@ describe('errorHandler', () => {
         expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Internal server error' });
     });
 
-    it('calls console.error for 5xx errors', () => {
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    it('calls logger.error for 5xx errors', () => {
+        const loggerSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
         const err = { status: 500, message: 'Boom' } as HttpException;
 
         errorHandler(err, mockRequest, mockResponse, mockNext);
 
-        expect(consoleSpy).toHaveBeenCalledWith('[error]', err);
+        expect(loggerSpy).toHaveBeenCalledWith({ err }, '[error]');
     });
 
-    it('does not call console.error for 4xx errors', () => {
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    it('does not call logger.error for 4xx errors', () => {
+        const loggerSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
         const err = { status: 400, message: 'Bad request' } as HttpException;
 
         errorHandler(err, mockRequest, mockResponse, mockNext);
 
-        expect(consoleSpy).not.toHaveBeenCalled();
+        expect(loggerSpy).not.toHaveBeenCalled();
     });
 });

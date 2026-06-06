@@ -5,6 +5,7 @@ import type { IGithubService } from '@domains/github/interface/github.service.in
 import type { INotifierService } from '@domains/notification/interface/notifier.service.interface';
 import type { ISubscriptionUrlBuilder } from '@domains/subscription/interface/subscription-url-builder.interface';
 import type { IScannerService } from './interface/scanner.service.interface';
+import { logger } from '@config/logger';
 
 export class ScannerService implements IScannerService {
     constructor(
@@ -67,10 +68,10 @@ export class ScannerService implements IScannerService {
             } catch (err) {
                 if (err instanceof RateLimitException) {
                     const retryTime = err.retryAfter ? new Date(err.retryAfter * 1000).toISOString() : 'unknown';
-                    console.warn(`[scanner] GitHub rate limit hit. Retry after: ${retryTime}. Aborting scan.`);
+                    logger.warn({ retryAfter: retryTime }, `[scanner] GitHub rate limit hit. Aborting scan.`);
                     return;
                 }
-                console.error(`[scanner] Error processing ${owner}/${repo}:`, err);
+                logger.error({ err, owner, repo }, `[scanner] Error processing repository`);
             }
         }
 
