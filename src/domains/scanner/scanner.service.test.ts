@@ -2,7 +2,7 @@ import { RateLimitException } from '@exceptions/rate-limit.exception';
 import { createMockGithubService, createMockNotifierService, createMockSubscriptionRepository } from '@test/mock-utils';
 import { ScannerService } from './scanner.service';
 
-import { SubscriptionUrlBuilder } from '@domains/subscription/subscription-url-builder';
+import { SubscriptionUrlBuilder } from '@domains/subscription';
 
 const mockSubscriptionRepository = createMockSubscriptionRepository();
 const mockGithubService = createMockGithubService();

@@ -2,18 +2,14 @@ import Redis from 'ioredis';
 import axios from 'axios';
 import { dbPool, runMigrations } from '@db/index';
 import { RedisService } from '@utilities/redis/redis.service';
-import { GithubService } from '@domains/github/github.service';
-import { ScannerService } from '@domains/scanner/scanner.service';
-import { ScannerScheduler } from '@domains/scanner/scanner.scheduler';
+import { GithubService } from '@domains/github';
+import { ScannerService, ScannerScheduler } from '@domains/scanner';
 import { createApp } from './app';
 import { environmentConfig } from '@config/environment';
 import nodemailer from 'nodemailer';
-import { NotifierService } from '@domains/notification/notifier.service';
-import { SubscriptionRepository } from '@domains/subscription/subscription.repository';
-import { SubscriptionService } from '@domains/subscription/subscription.service';
-import { SubscriptionUrlBuilder } from '@domains/subscription/subscription-url-builder';
+import { NotifierService, EmailTemplateBuilder } from '@domains/notification';
+import { SubscriptionRepository, SubscriptionService, SubscriptionUrlBuilder } from '@domains/subscription';
 import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
-import { EmailTemplateBuilder } from '@domains/notification/email-template-builder';
 import { logger } from '@config/logger';
 
 async function main(): Promise<void> {
