@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { RateLimitException } from '@exceptions/rate-limit.exception';
-import { githubRequestsTotal } from '@utilities/metrics/prom';
+import { githubRequestsTotal } from '@utilities/metrics';
 import type { AxiosInstance } from 'axios';
 import type { GithubRelease } from './dto/github-release.dto';
 import type { IGithubService } from './interface/github.service.interface';

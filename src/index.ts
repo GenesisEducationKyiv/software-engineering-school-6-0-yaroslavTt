@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
 import axios from 'axios';
 import { dbPool, runMigrations } from '@db/index';
-import { RedisService } from '@utilities/redis/redis.service';
+import { RedisService } from '@utilities/redis';
 import { GithubService } from '@domains/github';
 import { ScannerService, ScannerScheduler } from '@domains/scanner';
 import { createApp } from './app';
@@ -9,7 +9,7 @@ import { environmentConfig } from '@config/environment';
 import nodemailer from 'nodemailer';
 import { NotifierService, EmailTemplateBuilder } from '@domains/notification';
 import { SubscriptionRepository, SubscriptionService, SubscriptionUrlBuilder } from '@domains/subscription';
-import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
+import { CryptoTokenGenerator } from '@utilities/token';
 import { logger } from '@config/logger';
 
 async function main(): Promise<void> {

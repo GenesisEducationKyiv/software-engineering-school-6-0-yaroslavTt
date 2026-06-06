@@ -10,7 +10,7 @@ import {
     type SubscribePayload,
 } from '@domains/subscription';
 import { createMockGithubService, createMockNotifierService } from '@test/mock-utils';
-import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
+import { CryptoTokenGenerator } from '@utilities/token';
 import request from 'supertest';
 import type { IGithubService } from '@domains/github';
 

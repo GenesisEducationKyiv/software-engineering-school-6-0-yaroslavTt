@@ -4,9 +4,10 @@ import path from 'path';
 import YAML from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
 import { logger } from '@config/logger';
-import { createSubscriptionRouter, type ISubscriptionService } from '@domains/subscription';
+import { createSubscriptionRouter } from '@domains/subscription';
+import type { ISubscriptionService } from '@domains/subscription';
 import { errorHandler } from '@middlewares/error-handler.middleware';
-import { register } from '@utilities/metrics/prom';
+import { register } from '@utilities/metrics';
 import type { Express } from 'express';
 import { requestMonitoring } from '@middlewares/request-monitoring.middleware';
 

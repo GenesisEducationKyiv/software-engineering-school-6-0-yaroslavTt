@@ -1,5 +1,5 @@
 import { RateLimitException } from '@exceptions/rate-limit.exception';
-import { activeSubscriptions } from '@utilities/metrics/prom';
+import { activeSubscriptions } from '@utilities/metrics';
 import type { IGithubService } from '@domains/github';
 import type { INotifierService } from '@domains/notification';
 import type { ISubscriptionUrlBuilder, ISubscriptionRepository } from '@domains/subscription';

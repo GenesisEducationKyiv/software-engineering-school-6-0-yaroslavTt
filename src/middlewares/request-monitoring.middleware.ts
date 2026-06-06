@@ -1,4 +1,4 @@
-import { httpRequestDurationSeconds, httpRequestsTotal } from '@utilities/metrics/prom';
+import { httpRequestDurationSeconds, httpRequestsTotal } from '@utilities/metrics';
 import type { NextFunction, Request, Response } from 'express';
 
 export function requestMonitoring(req: Request, res: Response, next: NextFunction): void {

@@ -1,5 +1,5 @@
 import { environmentConfig } from '@config/environment';
-import { emailsSentTotal } from '@utilities/metrics/prom';
+import { emailsSentTotal } from '@utilities/metrics';
 import type { Transporter } from 'nodemailer';
 import type { INotifierService } from './interface/notifier.service.interface';
 import type { IEmailTemplateBuilder } from './interface/email-template-builder.interface';
