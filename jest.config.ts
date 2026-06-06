@@ -21,6 +21,8 @@ module.exports = {
         '.repo.ts',
         '.dto.ts',
         '.d.ts',
+        '/index.ts',
+        '.routes.ts',
     ],
     moduleFileExtensions: ['js', 'json', 'ts'],
     testRegex: '.*\\.test\\.ts$',
