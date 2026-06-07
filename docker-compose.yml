@@ -9,6 +9,17 @@ services:
                 condition: service_healthy
             redis:
                 condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+        restart: unless-stopped
+
+    notifier:
+        build: .
+        command: node dist/apps/notifier/index.js
+        env_file: .env
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
         restart: unless-stopped
 
     db:
@@ -31,6 +42,17 @@ services:
             test: ['CMD', 'redis-cli', 'ping']
             interval: 5s
             timeout: 3s
+            retries: 10
+
+    rabbitmq:
+        image: rabbitmq:4.3.1-management-alpine
+        ports:
+            - '5672:5672'
+            - '15672:15672'
+        healthcheck:
+            test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+            interval: 10s
+            timeout: 5s
             retries: 10
 
     prometheus:

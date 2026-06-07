@@ -2,10 +2,10 @@
     "name": "github-release-notifier",
     "version": "1.0.0",
     "description": "API service for subscribing to GitHub repository release notifications via email",
-    "main": "dist/index.js",
+    "main": "dist/src/index.js",
     "scripts": {
         "build": "tsc && tsc-alias",
-        "start": "node dist/index.js",
+        "start": "node dist/src/index.js",
         "dev": "ts-node -r tsconfig-paths/register src/index.ts",
         "test": "jest --runInBand",
         "test:cov": "jest --runInBand --coverage",

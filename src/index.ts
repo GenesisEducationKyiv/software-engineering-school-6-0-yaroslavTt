@@ -6,8 +6,8 @@ import { GithubService } from '@domains/github';
 import { ScannerService, ScannerScheduler } from '@domains/scanner';
 import { createApp } from './app';
 import { environmentConfig } from '@config/environment';
-import nodemailer from 'nodemailer';
-import { NotifierService, EmailTemplateBuilder } from '@domains/notification';
+import { RabbitMQService } from '@utilities/rabbitmq';
+import { RabbitMQNotifierService } from '@domains/notification';
 import { SubscriptionRepository, SubscriptionService, SubscriptionUrlBuilder } from '@domains/subscription';
 import { CryptoTokenGenerator } from '@utilities/token';
 import { logger } from '@config/logger';
@@ -33,17 +33,10 @@ async function main(): Promise<void> {
     });
     const githubService = new GithubService(githubHttpClient, cacheService);
 
-    // 4. Initialize Notifier service
-    const transporter = nodemailer.createTransport({
-        host: environmentConfig.smtpHost,
-        port: environmentConfig.smtpPort,
-        auth: {
-            user: environmentConfig.smtpUser,
-            pass: environmentConfig.smtpPass,
-        },
-    });
-    const emailTemplateBuilder = new EmailTemplateBuilder();
-    const notifierService = new NotifierService(transporter, emailTemplateBuilder);
+    // 4. Initialize RabbitMQ publisher
+    const rabbitMQ = new RabbitMQService(environmentConfig.rabbitmqUrl);
+    await rabbitMQ.connect();
+    const notifierService = new RabbitMQNotifierService(rabbitMQ);
 
     // 5. Initialize Subscription repository
     const subscriptionRepository = new SubscriptionRepository(dbPool);
