@@ -3,7 +3,6 @@ import axios from 'axios';
 import { dbPool, runMigrations } from '@db/index';
 import { RedisService } from '@utilities/redis';
 import { GithubService } from '@domains/github';
-import { ScannerService, ScannerScheduler } from '@domains/scanner';
 import { createApp } from './app';
 import { environmentConfig } from '@config/environment';
 import { RabbitMQService } from '@utilities/rabbitmq';
@@ -52,17 +51,7 @@ async function main(): Promise<void> {
         subscriptionUrlBuilder,
     );
 
-    // 7. Start scanner cron
-    const scannerService = new ScannerService(
-        subscriptionRepository,
-        githubService,
-        notifierService,
-        subscriptionUrlBuilder,
-    );
-    const scannerScheduler = new ScannerScheduler(scannerService);
-    scannerScheduler.start();
-
-    // 8. Start HTTP server
+    // 7. Start HTTP server
     const app = createApp(subscriptionService);
     app.listen(environmentConfig.port, () => {
         logger.info({ port: environmentConfig.port }, `[server] Listening`);

@@ -1,6 +1,7 @@
+import { logger } from '@config/logger';
 import { startNotifierConsumer } from './consumer';
 
 startNotifierConsumer().catch((err) => {
-    console.error('[Notifier]: Fatal error.', err);
+    logger.error({ err }, '[Notifier]: Fatal error.');
     process.exit(1);
 });

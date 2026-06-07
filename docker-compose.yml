@@ -22,6 +22,19 @@ services:
                 condition: service_healthy
         restart: unless-stopped
 
+    scanner:
+        build: .
+        command: node dist/apps/scanner/index.js
+        env_file: .env
+        depends_on:
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+        restart: unless-stopped
+
     db:
         image: postgres:16-alpine
         environment:
