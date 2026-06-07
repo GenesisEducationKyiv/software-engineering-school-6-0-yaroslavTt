@@ -29,6 +29,15 @@ export async function startScanner(): Promise<void> {
     await rabbitMQ.connect();
     const notifierService = new RabbitMQNotifierService(rabbitMQ);
 
+    const shutdown = async () => {
+        logger.info('[Scanner]: Shutting down.');
+        await rabbitMQ.close();
+        process.exit(0);
+    };
+
+    process.on('SIGTERM', shutdown);
+    process.on('SIGINT', shutdown);
+
     const subscriptionRepository = new SubscriptionRepository(dbPool);
     const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
 

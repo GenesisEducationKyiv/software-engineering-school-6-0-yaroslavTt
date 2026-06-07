@@ -17,6 +17,15 @@ export async function startNotifierConsumer(): Promise<void> {
 
     await rabbitMQ.connect();
 
+    const shutdown = async () => {
+        logger.info('[Notifier]: Shutting down.');
+        await rabbitMQ.close();
+        process.exit(0);
+    };
+
+    process.on('SIGTERM', shutdown);
+    process.on('SIGINT', shutdown);
+
     await rabbitMQ.consume<NotificationMessage>(NOTIFICATIONS_QUEUE_NAME, async (message) => {
         if (message.type === 'confirmation') {
             await notifierService.sendConfirmationEmail(message);

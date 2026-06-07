@@ -37,6 +37,11 @@ export class RabbitMQService implements IRabbitMQService {
         });
     }
 
+    async close(): Promise<void> {
+        await this.channel?.close();
+        await this.connection?.close();
+    }
+
     async publish<T>(queue: string, message: T): Promise<void> {
         const channel = await this.getChannel(queue);
 
@@ -68,21 +73,23 @@ export class RabbitMQService implements IRabbitMQService {
 
                 logger.error({ err, retries }, '[RabbitMQService]: Failed to process message.');
 
-                channel.ack(msg);
-
                 if (retries >= maxRetries) {
                     logger.error({ msg }, '[RabbitMQService]: Max retries reached, moving to dead letter queue.');
-                    channel.sendToQueue(`${queue}_dlq`, msg.content, {
+                    const sent = channel.sendToQueue(`${queue}_dlq`, msg.content, {
                         ...msg.properties,
                         headers: { ...msg.properties.headers, 'x-retry-count': retries },
                         persistent: true,
                     });
+                    if (sent) channel.ack(msg);
+                    else channel.nack(msg, false, true);
                 } else {
-                    channel.sendToQueue(queue, msg.content, {
+                    const sent = channel.sendToQueue(queue, msg.content, {
                         ...msg.properties,
                         headers: { ...msg.properties.headers, 'x-retry-count': retries + 1 },
                         persistent: true,
                     });
+                    if (sent) channel.ack(msg);
+                    else channel.nack(msg, false, true);
                 }
             }
         });

@@ -9,6 +9,7 @@ describe('RabbitMQNotifierService', () => {
     beforeEach(() => {
         mockRabbitMQ = {
             connect: jest.fn(),
+            close: jest.fn(),
             publish: jest.fn().mockResolvedValue(undefined),
             consume: jest.fn(),
         };

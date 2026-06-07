@@ -11,7 +11,7 @@
         "test:cov": "jest --runInBand --coverage",
         "test:unit": "jest --runInBand --coverage --testPathIgnorePatterns='<rootDir>/src/test/integration' --testPathIgnorePatterns='<rootDir>/tests/e2e'",
         "test:integration": "jest src/test/integration --runInBand --forceExit",
-        "test:e2e": "docker compose -f docker-compose.e2e.yml down -v; docker compose -f docker-compose.e2e.yml up -d --build --wait && npx playwright test; docker compose -f docker-compose.e2e.yml down -v",
+        "test:e2e": "docker compose -f docker-compose.e2e.yml down -v; docker compose -f docker-compose.e2e.yml up -d --build --wait && npx playwright test; STATUS=$?; docker compose -f docker-compose.e2e.yml down -v; exit $STATUS",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",

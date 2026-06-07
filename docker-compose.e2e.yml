@@ -25,6 +25,8 @@ services:
                 condition: service_started
             rabbitmq:
                 condition: service_healthy
+            notifier:
+                condition: service_healthy
         healthcheck:
             test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/health || exit 1']
             interval: 5s
@@ -35,12 +37,19 @@ services:
         build: .
         command: node dist/apps/notifier/index.js
         environment:
+            NODE_ENV: test
             RABBITMQ_URL: amqp://rabbitmq:5672
             SMTP_HOST: mailpit
             SMTP_PORT: 1025
             SMTP_USER: ''
             SMTP_PASS: ''
             EMAIL_FROM: 'GitHub Notifier <noreply@example.com>'
+        healthcheck:
+            test: ['CMD-SHELL', 'pgrep -f "node dist/apps/notifier" || exit 1']
+            interval: 5s
+            timeout: 3s
+            retries: 5
+            start_period: 5s
         depends_on:
             rabbitmq:
                 condition: service_healthy
