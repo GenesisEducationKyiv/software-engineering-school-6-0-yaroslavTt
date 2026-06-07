@@ -13,7 +13,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev --ignore-scripts
 COPY --from=builder /app/dist ./dist
 COPY src/db/migrations ./dist/src/db/migrations
-COPY swagger.yaml ./
-COPY public ./public
+COPY swagger.yaml ./dist/swagger.yaml
+COPY public ./dist/public
 EXPOSE 3000
 CMD ["node", "dist/src/index.js"]

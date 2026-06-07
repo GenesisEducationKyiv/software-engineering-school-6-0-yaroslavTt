@@ -71,7 +71,12 @@ export class RabbitMQService implements IRabbitMQService {
                 channel.ack(msg);
 
                 if (retries >= maxRetries) {
-                    logger.error({ msg }, '[RabbitMQService]: Max retries reached, discarding message.');
+                    logger.error({ msg }, '[RabbitMQService]: Max retries reached, moving to dead letter queue.');
+                    channel.sendToQueue(`${queue}_dlq`, msg.content, {
+                        ...msg.properties,
+                        headers: { ...msg.properties.headers, 'x-retry-count': retries },
+                        persistent: true,
+                    });
                 } else {
                     channel.sendToQueue(queue, msg.content, {
                         ...msg.properties,
@@ -88,7 +93,17 @@ export class RabbitMQService implements IRabbitMQService {
             throw new Error('[RabbitMQService]: RabbitMQ channel is not initialized. Call connect() first.');
         }
 
-        await this.channel.assertQueue(queue, { durable: true });
+        const dlqName = `${queue}_dlq`;
+
+        await this.channel.assertQueue(queue, {
+            durable: true,
+            arguments: {
+                'x-dead-letter-exchange': '',
+                'x-dead-letter-routing-key': dlqName,
+            },
+        });
+
+        await this.channel.assertQueue(dlqName, { durable: true });
 
         return this.channel;
     }
