@@ -24,7 +24,7 @@ const environmentConfig = Object.freeze({
 
     apiKey: process.env.API_KEY ?? '',
 
-    rabbitMqUtl: process.env.RABBITMQ_URL,
+    rabbitmqUrl: process.env.RABBITMQ_URL ?? 'amqp://localhost:5672',
 });
 
 export type Config = typeof environmentConfig;
