@@ -15,6 +15,7 @@ services:
             APP_BASE_URL: http://localhost:3000
             CRON_SCHEDULE: '*/5 * * * *'
             GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+            RABBITMQ_URL: amqp://rabbitmq:5672
         depends_on:
             db:
                 condition: service_healthy
@@ -22,11 +23,29 @@ services:
                 condition: service_healthy
             mailpit:
                 condition: service_started
+            rabbitmq:
+                condition: service_healthy
         healthcheck:
             test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/health || exit 1']
             interval: 5s
             timeout: 5s
             retries: 12
+
+    notifier:
+        build: .
+        command: node dist/apps/notifier/index.js
+        environment:
+            RABBITMQ_URL: amqp://rabbitmq:5672
+            SMTP_HOST: mailpit
+            SMTP_PORT: 1025
+            SMTP_USER: ''
+            SMTP_PASS: ''
+            EMAIL_FROM: 'GitHub Notifier <noreply@example.com>'
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+            mailpit:
+                condition: service_started
 
     db:
         image: postgres:16-alpine
@@ -46,6 +65,14 @@ services:
             test: ['CMD', 'redis-cli', 'ping']
             interval: 5s
             timeout: 3s
+            retries: 10
+
+    rabbitmq:
+        image: rabbitmq:4.3.1-management-alpine
+        healthcheck:
+            test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+            interval: 10s
+            timeout: 5s
             retries: 10
 
     mailpit:
