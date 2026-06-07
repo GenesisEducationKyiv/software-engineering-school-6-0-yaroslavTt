@@ -23,6 +23,8 @@ const environmentConfig = Object.freeze({
     cronSchedule: process.env.CRON_SCHEDULE ?? '*/5 * * * *',
 
     apiKey: process.env.API_KEY ?? '',
+
+    rabbitMqUtl: process.env.RABBITMQ_URL,
 });
 
 export type Config = typeof environmentConfig;
