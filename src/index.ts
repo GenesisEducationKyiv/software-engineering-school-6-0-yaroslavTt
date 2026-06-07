@@ -34,7 +34,9 @@ async function main(): Promise<void> {
 
     // 4. Initialize RabbitMQ publisher
     const rabbitMQ = new RabbitMQService(environmentConfig.rabbitmqUrl);
-    await rabbitMQ.connect();
+    rabbitMQ.connect().catch((err) => {
+        logger.error({ err }, '[RabbitMQ]: Initial connection failed. Publish calls will fail until reconnected.');
+    });
     const notifierService = new RabbitMQNotifierService(rabbitMQ);
 
     // 5. Initialize Subscription repository

@@ -6,11 +6,15 @@ export class RabbitMQService implements IRabbitMQService {
     private connectUrl: string;
     private connection: ChannelModel | null;
     private channel: Channel | null;
+    private consumers: Map<string, (message: unknown) => Promise<void>>;
+    private isReconnecting: boolean;
 
     constructor(connectUrl: string) {
         this.connectUrl = connectUrl;
         this.connection = null;
         this.channel = null;
+        this.isReconnecting = false;
+        this.consumers = new Map();
     }
 
     async connect(): Promise<void> {
@@ -24,7 +28,8 @@ export class RabbitMQService implements IRabbitMQService {
         });
 
         conn.on('close', () => {
-            logger.warn('[RabbitMQService]: Connection closed.');
+            logger.warn('[RabbitMQService]: Connection closed. Reconnecting...');
+            this.scheduleReconnect();
         });
 
         conn.on('handler-error', (err: Error, event: string) => {
@@ -35,11 +40,16 @@ export class RabbitMQService implements IRabbitMQService {
     async publish<T>(queue: string, message: T): Promise<void> {
         const channel = await this.getChannel(queue);
 
-        channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), { persistent: true });
+        const sendResult = channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), { persistent: true });
+        if (!sendResult) {
+            throw new Error(`[RabbitMQService]: Failed to enqueue message to "${queue}" — write buffer full.`);
+        }
     }
 
     async consume<T>(queue: string, handler: (message: T) => Promise<void>): Promise<void> {
         const channel = await this.getChannel(queue);
+
+        this.consumers.set(queue, handler as (message: unknown) => Promise<void>);
 
         await channel.consume(queue, async (msg) => {
             if (!msg) {
@@ -53,9 +63,22 @@ export class RabbitMQService implements IRabbitMQService {
 
                 channel.ack(msg);
             } catch (err) {
-                logger.error({ err, msg }, '[RabbitMQService]: Failed to process message.');
+                const retries = (msg.properties.headers?.['x-retry-count'] as number) ?? 0;
+                const maxRetries = 3;
 
-                channel.nack(msg, false, true);
+                logger.error({ err, retries }, '[RabbitMQService]: Failed to process message.');
+
+                channel.ack(msg);
+
+                if (retries >= maxRetries) {
+                    logger.error({ msg }, '[RabbitMQService]: Max retries reached, discarding message.');
+                } else {
+                    channel.sendToQueue(queue, msg.content, {
+                        ...msg.properties,
+                        headers: { ...msg.properties.headers, 'x-retry-count': retries + 1 },
+                        persistent: true,
+                    });
+                }
             }
         });
     }
@@ -68,5 +91,30 @@ export class RabbitMQService implements IRabbitMQService {
         await this.channel.assertQueue(queue, { durable: true });
 
         return this.channel;
+    }
+
+    private scheduleReconnect(attempt: number = 1): void {
+        if (this.isReconnecting) return;
+        this.isReconnecting = true;
+
+        const delay = Math.min(1000 * 2 ** (attempt - 1), 30_000);
+        setTimeout(async () => {
+            try {
+                this.connection = null;
+                this.channel = null;
+                await this.connect();
+
+                for (const [queue, handler] of this.consumers) {
+                    await this.consume(queue, handler);
+                }
+
+                this.isReconnecting = false;
+                logger.info('[RabbitMQService]: Reconnected successfully.');
+            } catch (err) {
+                this.isReconnecting = false;
+                logger.error({ err, attempt }, '[RabbitMQService]: Reconnect failed.');
+                this.scheduleReconnect(attempt + 1);
+            }
+        }, delay);
     }
 }
