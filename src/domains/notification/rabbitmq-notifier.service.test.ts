@@ -1,6 +1,6 @@
 import type { IRabbitMQService } from '@utilities/rabbitmq';
 import { RabbitMQNotifierService } from './rabbitmq-notifier.service';
-import { NOTIFICATIONS_QUEUE_NAME } from './constants';
+import { NOTIFICATIONS_QUEUE_NAME } from '@constants/queues';
 
 let mockRabbitMQ: jest.Mocked<IRabbitMQService>;
 let service: RabbitMQNotifierService;

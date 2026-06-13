@@ -1,6 +1,6 @@
 import { RateLimitException } from '@exceptions/rate-limit.exception';
 import { activeSubscriptions } from '@utilities/metrics';
-import type { IGithubService } from '@domains/github';
+import type { IGithubReleaseService } from '@domains/github';
 import type { INotifierService } from '@domains/notification';
 import type { ISubscriptionUrlBuilder, ISubscriptionRepository } from '@domains/subscription';
 import type { IScannerService } from './interface/scanner.service.interface';
@@ -9,7 +9,7 @@ import { logger } from '@config/logger';
 export class ScannerService implements IScannerService {
     constructor(
         private readonly subscriptionRepository: ISubscriptionRepository,
-        private readonly githubService: IGithubService,
+        private readonly githubService: IGithubReleaseService,
         private readonly notifierService: INotifierService,
         private readonly urlBuilder: ISubscriptionUrlBuilder,
     ) {}

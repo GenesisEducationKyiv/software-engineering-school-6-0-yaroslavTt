@@ -2,7 +2,7 @@ import { NotFoundException } from '@exceptions/not-found.exception';
 import { ConflictException } from '@exceptions/conflict.exception';
 import type { SubscriptionRow } from './dto/subscription-row.dto';
 import type { ISubscriptionRepository } from './interface/subscription.repository.interface';
-import type { IGithubService } from '@domains/github';
+import type { IGithubRepoService } from '@domains/github';
 import type { INotifierService } from '@domains/notification';
 import type { SubscribePayload } from './dto/subscribe-payload.dto';
 import type { ITokenGenerator } from '@common/interface/token-generator.interface';
@@ -12,7 +12,7 @@ import type { ISubscriptionService } from './interface/subscription.service.inte
 export class SubscriptionService implements ISubscriptionService {
     constructor(
         private readonly subscriptionRepository: ISubscriptionRepository,
-        private readonly githubService: IGithubService,
+        private readonly githubService: IGithubRepoService,
         private readonly notifierService: INotifierService,
         private readonly tokenGenerator: ITokenGenerator,
         private readonly urlBuilder: ISubscriptionUrlBuilder,

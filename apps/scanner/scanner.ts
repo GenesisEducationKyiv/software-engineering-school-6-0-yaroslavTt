@@ -3,7 +3,7 @@ import { logger } from '@config/logger';
 import { dbPool } from '@db/index';
 import { GithubService } from '@domains/github';
 import { RabbitMQNotifierService } from '@domains/notification';
-import { ScannerScheduler, ScannerService } from '@domains/scanner';
+import { Scanner } from '@domains/scanner';
 import { SubscriptionRepository, SubscriptionUrlBuilder } from '@domains/subscription';
 import { RabbitMQService } from '@utilities/rabbitmq';
 import { RedisService } from '@utilities/redis';
@@ -41,14 +41,8 @@ export async function startScanner(): Promise<void> {
     const subscriptionRepository = new SubscriptionRepository(dbPool);
     const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
 
-    const scannerService = new ScannerService(
-        subscriptionRepository,
-        githubService,
-        notifierService,
-        subscriptionUrlBuilder,
-    );
-    const scheduler = new ScannerScheduler(scannerService);
-    scheduler.start();
+    const scanner = new Scanner(subscriptionRepository, githubService, notifierService, subscriptionUrlBuilder);
+    scanner.start();
 
     logger.info('[Scanner]: Scheduler started.');
 }

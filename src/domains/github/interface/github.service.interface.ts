@@ -1,6 +1,4 @@
-import type { GithubRelease } from '../dto/github-release.dto';
+import type { IGithubRepoService } from './github-repo.service.interface';
+import type { IGithubReleaseService } from './github-release.service.interface';
 
-export interface IGithubService {
-    repoExists(owner: string, repo: string): Promise<boolean>;
-    getLatestRelease(owner: string, repo: string): Promise<GithubRelease | null>;
-}
+export interface IGithubService extends IGithubRepoService, IGithubReleaseService {}

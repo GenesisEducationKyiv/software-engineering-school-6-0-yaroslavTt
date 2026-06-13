@@ -1,3 +1,1 @@
-// Classes
-export { ScannerService } from './scanner.service';
-export { ScannerScheduler } from './scanner.scheduler';
+export { Scanner } from './scanner.facade';

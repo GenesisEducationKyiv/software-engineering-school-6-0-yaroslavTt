@@ -1,7 +1,7 @@
 import type { IRabbitMQService } from '@utilities/rabbitmq';
 import type { INotifierService } from './interface/notifier.service.interface';
 import type { NotificationMessage } from './dto/notification-message.dto';
-import { NOTIFICATIONS_QUEUE_NAME } from './constants';
+import { NOTIFICATIONS_QUEUE_NAME } from '@constants/queues';
 
 export class RabbitMQNotifierService implements INotifierService {
     constructor(private readonly rabbitMQService: IRabbitMQService) {}

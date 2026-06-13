@@ -1,7 +1,8 @@
 import { createTransport } from 'nodemailer';
 import { environmentConfig } from '@config/environment';
 import { logger } from '@config/logger';
-import { NotifierService, EmailTemplateBuilder, NOTIFICATIONS_QUEUE_NAME } from '@domains/notification';
+import { NotifierService, EmailTemplateBuilder } from '@domains/notification';
+import { NOTIFICATIONS_QUEUE_NAME } from '@constants/queues';
 import type { NotificationMessage } from '@domains/notification';
 import { RabbitMQService } from '@utilities/rabbitmq';
 
