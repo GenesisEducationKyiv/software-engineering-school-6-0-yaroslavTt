@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { environmentConfig } from '@config/environment';
 import type { IScannerService } from './interface/scanner.service.interface';
-import { scanDurationSeconds } from '@utilities/metrics/prom';
+import { scanDurationSeconds } from '@utilities/metrics';
 import { logger } from '@config/logger';
 
 export class ScannerScheduler {

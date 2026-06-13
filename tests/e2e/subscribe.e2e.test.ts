@@ -14,7 +14,7 @@ test('subscribe - success, email received, confirm page shows success', async ({
     await page.click('#submitBtn');
     await expect(page.locator('#message')).toHaveClass(/success/);
 
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(2000);
     const mailRes = await request.get(`${MAILPIT_API}/messages`);
     const mail = await mailRes.json();
 
@@ -78,7 +78,7 @@ test('unsubscribe - success, unsubscribe link in confirmation email works', asyn
     await page.click('#submitBtn');
     await expect(page.locator('#message')).toHaveClass(/success/);
 
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(2000);
     const mailRes = await request.get(`${MAILPIT_API}/messages`);
     const mail = await mailRes.json();
 
@@ -97,7 +97,7 @@ test('subscriptions page - shows confirmed subscription after confirm flow', asy
     await page.click('#submitBtn');
     await expect(page.locator('#message')).toHaveClass(/success/);
 
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(2000);
     const mailRes = await request.get(`${MAILPIT_API}/messages`);
     const mail = await mailRes.json();
 

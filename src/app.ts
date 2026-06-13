@@ -4,11 +4,11 @@ import path from 'path';
 import YAML from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
 import { logger } from '@config/logger';
-import { createSubscriptionRouter } from '@domains/subscription/subscription.routes';
+import { createSubscriptionRouter } from '@domains/subscription';
+import type { ISubscriptionService } from '@domains/subscription';
 import { errorHandler } from '@middlewares/error-handler.middleware';
-import { register } from '@utilities/metrics/prom';
+import { register } from '@utilities/metrics';
 import type { Express } from 'express';
-import type { ISubscriptionService } from '@domains/subscription/interface/subscription.service.interface';
 import { requestMonitoring } from '@middlewares/request-monitoring.middleware';
 
 export function createApp(subscriptionService: ISubscriptionService): Express {

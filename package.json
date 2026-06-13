@@ -2,16 +2,16 @@
     "name": "github-release-notifier",
     "version": "1.0.0",
     "description": "API service for subscribing to GitHub repository release notifications via email",
-    "main": "dist/index.js",
+    "main": "dist/src/index.js",
     "scripts": {
         "build": "tsc && tsc-alias",
-        "start": "node dist/index.js",
+        "start": "node dist/src/index.js",
         "dev": "ts-node -r tsconfig-paths/register src/index.ts",
         "test": "jest --runInBand",
         "test:cov": "jest --runInBand --coverage",
         "test:unit": "jest --runInBand --coverage --testPathIgnorePatterns='<rootDir>/src/test/integration' --testPathIgnorePatterns='<rootDir>/tests/e2e'",
         "test:integration": "jest src/test/integration --runInBand --forceExit",
-        "test:e2e": "docker compose -f docker-compose.e2e.yml down -v; docker compose -f docker-compose.e2e.yml up -d --build --wait && npx playwright test; docker compose -f docker-compose.e2e.yml down -v",
+        "test:e2e": "docker compose -f docker-compose.e2e.yml down -v; docker compose -f docker-compose.e2e.yml up -d --build --wait && npx playwright test; STATUS=$?; docker compose -f docker-compose.e2e.yml down -v; exit $STATUS",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
@@ -19,6 +19,7 @@
         "prepare": "husky"
     },
     "dependencies": {
+        "amqplib": "^2.0.1",
         "axios": "^1.7.2",
         "dotenv": "^17.4.1",
         "eslint-config-prettier": "^10.1.8",
@@ -36,6 +37,7 @@
     "devDependencies": {
         "@playwright/test": "^1.60.0",
         "@testcontainers/postgresql": "^11.14.0",
+        "@types/amqplib": "^0.10.8",
         "@types/express": "^5.0.0",
         "@types/jest": "^29.5.14",
         "@types/node": "^24.12.2",

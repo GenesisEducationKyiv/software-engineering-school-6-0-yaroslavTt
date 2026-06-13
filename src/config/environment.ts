@@ -23,6 +23,8 @@ const environmentConfig = Object.freeze({
     cronSchedule: process.env.CRON_SCHEDULE ?? '*/5 * * * *',
 
     apiKey: process.env.API_KEY ?? '',
+
+    rabbitmqUrl: process.env.RABBITMQ_URL ?? 'amqp://localhost:5672',
 });
 
 export type Config = typeof environmentConfig;

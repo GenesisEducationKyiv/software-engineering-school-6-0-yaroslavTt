@@ -1,11 +1,8 @@
-import type { IGithubService } from '@domains/github/interface/github.service.interface';
-import type { INotifierService } from '@domains/notification/interface/notifier.service.interface';
-import type { ISubscriptionRepository } from '@domains/subscription/interface/subscription.repository.interface';
+import type { IGithubService } from '@domains/github';
 import type { ICacheService } from '@common/interface/cache.service.interface';
 import type { ITokenGenerator } from '@common/interface/token-generator.interface';
-import type { IEmailTemplateBuilder } from '@domains/notification/interface/email-template-builder.interface';
-import type { ISubscriptionService } from '@domains/subscription/interface/subscription.service.interface';
-import type { Subscription } from '@domains/subscription/dto/subscription.dto';
+import type { INotifierService, IEmailTemplateBuilder } from '@domains/notification';
+import type { ISubscriptionRepository, ISubscriptionService, Subscription } from '@domains/subscription';
 
 export function createValidSubscription(overrides: Partial<Subscription> = {}): Subscription {
     return {

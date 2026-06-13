@@ -3,14 +3,16 @@ import type { Pool } from 'pg';
 import type { Express } from 'express';
 import { startTestDb } from './helpers/db';
 import { createApp } from '../../app';
-import { SubscriptionRepository } from '@domains/subscription/subscription.repository';
-import { SubscriptionService } from '@domains/subscription/subscription.service';
-import { SubscriptionUrlBuilder } from '@domains/subscription/subscription-url-builder';
+import {
+    SubscriptionRepository,
+    SubscriptionService,
+    SubscriptionUrlBuilder,
+    type SubscribePayload,
+} from '@domains/subscription';
 import { createMockGithubService, createMockNotifierService } from '@test/mock-utils';
-import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
+import { CryptoTokenGenerator } from '@utilities/token';
 import request from 'supertest';
-import type { SubscribePayload } from '@domains/subscription/dto/subscribe-payload.dto';
-import type { IGithubService } from '@domains/github/interface/github.service.interface';
+import type { IGithubService } from '@domains/github';
 
 describe('Subscription Integration Tests', () => {
     // one container for the whole suite

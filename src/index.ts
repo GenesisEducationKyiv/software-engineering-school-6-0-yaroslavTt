@@ -1,19 +1,14 @@
 import Redis from 'ioredis';
 import axios from 'axios';
 import { dbPool, runMigrations } from '@db/index';
-import { RedisService } from '@utilities/redis/redis.service';
-import { GithubService } from '@domains/github/github.service';
-import { ScannerService } from '@domains/scanner/scanner.service';
-import { ScannerScheduler } from '@domains/scanner/scanner.scheduler';
+import { RedisService } from '@utilities/redis';
+import { GithubService } from '@domains/github';
 import { createApp } from './app';
 import { environmentConfig } from '@config/environment';
-import nodemailer from 'nodemailer';
-import { NotifierService } from '@domains/notification/notifier.service';
-import { SubscriptionRepository } from '@domains/subscription/subscription.repository';
-import { SubscriptionService } from '@domains/subscription/subscription.service';
-import { SubscriptionUrlBuilder } from '@domains/subscription/subscription-url-builder';
-import { CryptoTokenGenerator } from '@utilities/token/crypto-token-generator';
-import { EmailTemplateBuilder } from '@domains/notification/email-template-builder';
+import { RabbitMQService } from '@utilities/rabbitmq';
+import { RabbitMQNotifierService } from '@domains/notification';
+import { SubscriptionRepository, SubscriptionService, SubscriptionUrlBuilder } from '@domains/subscription';
+import { CryptoTokenGenerator } from '@utilities/token';
 import { logger } from '@config/logger';
 
 async function main(): Promise<void> {
@@ -37,17 +32,12 @@ async function main(): Promise<void> {
     });
     const githubService = new GithubService(githubHttpClient, cacheService);
 
-    // 4. Initialize Notifier service
-    const transporter = nodemailer.createTransport({
-        host: environmentConfig.smtpHost,
-        port: environmentConfig.smtpPort,
-        auth: {
-            user: environmentConfig.smtpUser,
-            pass: environmentConfig.smtpPass,
-        },
+    // 4. Initialize RabbitMQ publisher
+    const rabbitMQ = new RabbitMQService(environmentConfig.rabbitmqUrl);
+    rabbitMQ.connect().catch((err) => {
+        logger.error({ err }, '[RabbitMQ]: Initial connection failed. Publish calls will fail until reconnected.');
     });
-    const emailTemplateBuilder = new EmailTemplateBuilder();
-    const notifierService = new NotifierService(transporter, emailTemplateBuilder);
+    const notifierService = new RabbitMQNotifierService(rabbitMQ);
 
     // 5. Initialize Subscription repository
     const subscriptionRepository = new SubscriptionRepository(dbPool);
@@ -63,17 +53,7 @@ async function main(): Promise<void> {
         subscriptionUrlBuilder,
     );
 
-    // 7. Start scanner cron
-    const scannerService = new ScannerService(
-        subscriptionRepository,
-        githubService,
-        notifierService,
-        subscriptionUrlBuilder,
-    );
-    const scannerScheduler = new ScannerScheduler(scannerService);
-    scannerScheduler.start();
-
-    // 8. Start HTTP server
+    // 7. Start HTTP server
     const app = createApp(subscriptionService);
     app.listen(environmentConfig.port, () => {
         logger.info({ port: environmentConfig.port }, `[server] Listening`);
