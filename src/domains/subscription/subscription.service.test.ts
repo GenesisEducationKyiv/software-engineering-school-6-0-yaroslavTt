@@ -4,7 +4,7 @@ import { RateLimitException } from '@exceptions/rate-limit.exception';
 import { SubscriptionService } from './subscription.service';
 import {
     createMockGithubService,
-    createMockNotifierService,
+    createMockSagaOrchestrator,
     createMockSubscriptionRepository,
     createMockTokenGenerator,
     createValidSubscription,
@@ -13,7 +13,7 @@ import { SubscriptionUrlBuilder } from './subscription-url-builder';
 
 const mockSubscriptionRepository = createMockSubscriptionRepository();
 const mockGithubService = createMockGithubService();
-const mockNotifierService = createMockNotifierService();
+const mockSagaOrchestrator = createMockSagaOrchestrator();
 const mockTokenGenerator = createMockTokenGenerator();
 
 const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
@@ -27,7 +27,7 @@ describe('SubscriptionService', () => {
         subscriptionService = new SubscriptionService(
             mockSubscriptionRepository,
             mockGithubService,
-            mockNotifierService,
+            mockSagaOrchestrator as never,
             mockTokenGenerator,
             subscriptionUrlBuilder,
         );
@@ -50,10 +50,12 @@ describe('SubscriptionService', () => {
                 confirmToken: 'confirm-token',
                 unsubToken: 'unsub-token',
             });
-            expect(mockNotifierService.sendConfirmationEmail).toHaveBeenCalledWith({
-                to: validSubscriptionParams.email,
+            expect(mockSagaOrchestrator.start).toHaveBeenCalledWith({
+                email: validSubscriptionParams.email,
                 owner: 'golang',
                 repo: 'go',
+                confirmToken: 'confirm-token',
+                unsubToken: 'unsub-token',
                 confirmUrl: expect.stringContaining('confirm-token'),
                 unsubscribeUrl: expect.stringContaining('unsub-token'),
             });

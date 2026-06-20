@@ -3,6 +3,7 @@ import type { ICacheService } from '@common/interface/cache.service.interface';
 import type { ITokenGenerator } from '@common/interface/token-generator.interface';
 import type { INotifierService, IEmailTemplateBuilder } from '@domains/notification';
 import type { ISubscriptionRepository, ISubscriptionService, Subscription } from '@domains/subscription';
+import type { SubscribeSagaOrchestrator } from '@domains/saga';
 
 export function createValidSubscription(overrides: Partial<Subscription> = {}): Subscription {
     return {
@@ -63,6 +64,13 @@ export function createMockSubscriptionRepository(): jest.Mocked<ISubscriptionRep
         findConfirmedSubscribersByRepo: jest.fn(),
         updateLastSeenTag: jest.fn(),
         countConfirmed: jest.fn().mockResolvedValue(0),
+    };
+}
+
+export function createMockSagaOrchestrator(): jest.Mocked<Pick<SubscribeSagaOrchestrator, 'start' | 'handleReply'>> {
+    return {
+        start: jest.fn().mockResolvedValue('saga-id'),
+        handleReply: jest.fn().mockResolvedValue(undefined),
     };
 }
 

@@ -9,7 +9,7 @@ import {
     SubscriptionUrlBuilder,
     type SubscribePayload,
 } from '@domains/subscription';
-import { createMockGithubService, createMockNotifierService } from '@test/mock-utils';
+import { createMockGithubService, createMockSagaOrchestrator } from '@test/mock-utils';
 import { CryptoTokenGenerator } from '@utilities/token';
 import request from 'supertest';
 import type { IGithubService } from '@domains/github';
@@ -25,14 +25,14 @@ describe('Subscription Integration Tests', () => {
         ({ pool, container } = await startTestDb());
         const subscriptionRepository = new SubscriptionRepository(pool);
         mockGithubService = createMockGithubService();
-        const mockNotifierService = createMockNotifierService();
+        const mockSagaOrchestrator = createMockSagaOrchestrator();
 
         mockGithubService.repoExists.mockResolvedValue(true); // default: repo exists
 
         const service = new SubscriptionService(
             subscriptionRepository,
             mockGithubService,
-            mockNotifierService,
+            mockSagaOrchestrator as never,
             new CryptoTokenGenerator(),
             new SubscriptionUrlBuilder(),
         );

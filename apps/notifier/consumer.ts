@@ -2,9 +2,15 @@ import { createTransport } from 'nodemailer';
 import { environmentConfig } from '@config/environment';
 import { logger } from '@config/logger';
 import { NotifierService, EmailTemplateBuilder } from '@domains/notification';
-import { NOTIFICATIONS_QUEUE_NAME } from '@constants/queues';
+import {
+    NOTIFICATIONS_QUEUE_NAME,
+    SAGA_EMAIL_COMMANDS_QUEUE_NAME,
+    SAGA_EMAIL_REPLIES_QUEUE_NAME,
+} from '@constants/queues';
 import type { NotificationMessage } from '@domains/notification';
 import { RabbitMQService } from '@utilities/rabbitmq';
+import type { SagaEmailCommand } from '@domains/saga';
+import type { SagaEmailReply } from '@domains/saga';
 
 export async function startNotifierConsumer(): Promise<void> {
     const transporter = createTransport({
@@ -33,6 +39,17 @@ export async function startNotifierConsumer(): Promise<void> {
         } else {
             await notifierService.sendReleaseEmail(message);
         }
+    });
+
+    await rabbitMQ.consume<SagaEmailCommand>(SAGA_EMAIL_COMMANDS_QUEUE_NAME, async (message) => {
+        const reply: SagaEmailReply = { sagaId: message.sagaId, success: false };
+        try {
+            await notifierService.sendConfirmationEmail(message);
+            reply.success = true;
+        } catch (err) {
+            logger.error({ err, sagaId: message.sagaId }, '[Notifier]: Failed to send saga confirmation email.');
+        }
+        await rabbitMQ.publish(SAGA_EMAIL_REPLIES_QUEUE_NAME, reply);
     });
 
     logger.info('[Notifier]: Consumer started.');

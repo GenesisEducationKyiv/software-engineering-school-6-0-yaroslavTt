@@ -5,6 +5,7 @@ export { EmailTemplateBuilder } from './email-template-builder';
 
 // DTOs
 export type { NotificationMessage } from './dto/notification-message.dto';
+export type { ConfirmationNotificationMessage } from './dto/notification-message.dto';
 
 // Interfaces
 export type { INotifierService } from './interface/notifier.service.interface';

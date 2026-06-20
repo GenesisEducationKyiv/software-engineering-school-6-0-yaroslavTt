@@ -1,7 +1,13 @@
 import { startNotifierConsumer } from './consumer';
 import { RabbitMQService } from '@utilities/rabbitmq';
-import { NotifierService, EmailTemplateBuilder, NOTIFICATIONS_QUEUE_NAME } from '@domains/notification';
+import { NotifierService, EmailTemplateBuilder } from '@domains/notification';
+import {
+    NOTIFICATIONS_QUEUE_NAME,
+    SAGA_EMAIL_COMMANDS_QUEUE_NAME,
+    SAGA_EMAIL_REPLIES_QUEUE_NAME,
+} from '@constants/queues';
 import type { NotificationMessage } from '@domains/notification';
+import type { SagaEmailCommand } from '@domains/saga';
 
 jest.mock('@utilities/rabbitmq');
 jest.mock('@domains/notification', () => ({
@@ -20,7 +26,8 @@ describe('startNotifierConsumer', () => {
     let mockConnect: jest.Mock;
     let mockConsume: jest.Mock;
     let mockClose: jest.Mock;
-    let capturedHandler: (message: NotificationMessage) => Promise<void>;
+    let mockPublish: jest.Mock;
+    let capturedHandlers: Record<string, (message: unknown) => Promise<void>>;
 
     beforeEach(async () => {
         jest.clearAllMocks();
@@ -37,8 +44,10 @@ describe('startNotifierConsumer', () => {
 
         mockConnect = jest.fn().mockResolvedValue(undefined);
         mockClose = jest.fn().mockResolvedValue(undefined);
-        mockConsume = jest.fn().mockImplementation(async (_queue: string, handler: typeof capturedHandler) => {
-            capturedHandler = handler;
+        mockPublish = jest.fn().mockResolvedValue(undefined);
+        capturedHandlers = {};
+        mockConsume = jest.fn().mockImplementation(async (queue: string, handler: (msg: unknown) => Promise<void>) => {
+            capturedHandlers[queue] = handler;
         });
 
         (RabbitMQService as jest.MockedClass<typeof RabbitMQService>).mockImplementation(
@@ -47,7 +56,7 @@ describe('startNotifierConsumer', () => {
                     connect: mockConnect,
                     consume: mockConsume,
                     close: mockClose,
-                    publish: jest.fn().mockResolvedValue(undefined),
+                    publish: mockPublish,
                 }) as never,
         );
 
@@ -57,6 +66,11 @@ describe('startNotifierConsumer', () => {
     it('connects to RabbitMQ and registers consumer on correct queue', () => {
         expect(mockConnect).toHaveBeenCalledTimes(1);
         expect(mockConsume).toHaveBeenCalledWith(NOTIFICATIONS_QUEUE_NAME, expect.any(Function));
+    });
+
+    it('registers consumers on both queues', () => {
+        expect(mockConsume).toHaveBeenCalledWith(NOTIFICATIONS_QUEUE_NAME, expect.any(Function));
+        expect(mockConsume).toHaveBeenCalledWith(SAGA_EMAIL_COMMANDS_QUEUE_NAME, expect.any(Function));
     });
 
     it('routes confirmation message to sendConfirmationEmail', async () => {
@@ -69,7 +83,7 @@ describe('startNotifierConsumer', () => {
             unsubscribeUrl: 'http://unsub',
         };
 
-        await capturedHandler(message);
+        await capturedHandlers[NOTIFICATIONS_QUEUE_NAME](message);
 
         expect(mockNotifierService.sendConfirmationEmail).toHaveBeenCalledWith(message);
         expect(mockNotifierService.sendReleaseEmail).not.toHaveBeenCalled();
@@ -87,10 +101,44 @@ describe('startNotifierConsumer', () => {
             unsubscribeUrl: 'http://unsub',
         };
 
-        await capturedHandler(message);
+        await capturedHandlers[NOTIFICATIONS_QUEUE_NAME](message);
 
         expect(mockNotifierService.sendReleaseEmail).toHaveBeenCalledWith(message);
         expect(mockNotifierService.sendConfirmationEmail).not.toHaveBeenCalled();
+    });
+
+    it('sends saga confirmation email and publishes ACK reply on success', async () => {
+        const command: SagaEmailCommand = {
+            sagaId: 'saga-1',
+            type: 'confirmation',
+            to: 'u@e.com',
+            owner: 'owner',
+            repo: 'repo',
+            confirmUrl: 'http://confirm',
+            unsubscribeUrl: 'http://unsub',
+        };
+
+        await capturedHandlers[SAGA_EMAIL_COMMANDS_QUEUE_NAME](command);
+
+        expect(mockNotifierService.sendConfirmationEmail).toHaveBeenCalledWith(command);
+        expect(mockPublish).toHaveBeenCalledWith(SAGA_EMAIL_REPLIES_QUEUE_NAME, { sagaId: 'saga-1', success: true });
+    });
+
+    it('publishes NACK reply when saga email fails', async () => {
+        mockNotifierService.sendConfirmationEmail.mockRejectedValue(new Error('SMTP error'));
+        const command: SagaEmailCommand = {
+            sagaId: 'saga-2',
+            type: 'confirmation',
+            to: 'u@e.com',
+            owner: 'owner',
+            repo: 'repo',
+            confirmUrl: 'http://confirm',
+            unsubscribeUrl: 'http://unsub',
+        };
+
+        await capturedHandlers[SAGA_EMAIL_COMMANDS_QUEUE_NAME](command);
+
+        expect(mockPublish).toHaveBeenCalledWith(SAGA_EMAIL_REPLIES_QUEUE_NAME, { sagaId: 'saga-2', success: false });
     });
 
     describe('shutdown handler', () => {
