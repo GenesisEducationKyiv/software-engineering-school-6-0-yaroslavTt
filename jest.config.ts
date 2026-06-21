@@ -17,6 +17,7 @@ module.exports = {
         '<rootDir>/src/config',
         '<rootDir>/src/constants',
         '<rootDir>/src/test',
+        '<rootDir>/src/proto/generated',
         '.exception.ts',
         '.repo.ts',
         '.dto.ts',
@@ -39,5 +40,6 @@ module.exports = {
         '@utilities/(.*)': '<rootDir>/src/utilities/$1',
         '@test/(.*)': '<rootDir>/src/test/$1',
         '@common/(.*)': '<rootDir>/src/common/$1',
+        '@proto/(.*)': '<rootDir>/src/proto/$1',
     },
 };

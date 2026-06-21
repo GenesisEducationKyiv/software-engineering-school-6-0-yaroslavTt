@@ -1,10 +1,9 @@
 import { environmentConfig } from '@config/environment';
 import { logger } from '@config/logger';
-import { dbPool } from '@db/index';
 import { GithubService } from '@domains/github';
 import { RabbitMQNotifierService } from '@domains/notification';
 import { Scanner } from '@domains/scanner';
-import { SubscriptionRepository, SubscriptionUrlBuilder } from '@domains/subscription';
+import { SubscriptionGrpcClient, SubscriptionUrlBuilder } from '@domains/subscription';
 import { RabbitMQService } from '@utilities/rabbitmq';
 import { RedisService } from '@utilities/redis';
 import axios from 'axios';
@@ -38,10 +37,10 @@ export async function startScanner(): Promise<void> {
     process.on('SIGTERM', shutdown);
     process.on('SIGINT', shutdown);
 
-    const subscriptionRepository = new SubscriptionRepository(dbPool);
+    const subscriptionGrpcClient = new SubscriptionGrpcClient(environmentConfig.grpcAddress);
     const subscriptionUrlBuilder = new SubscriptionUrlBuilder();
 
-    const scanner = new Scanner(subscriptionRepository, githubService, notifierService, subscriptionUrlBuilder);
+    const scanner = new Scanner(subscriptionGrpcClient, githubService, notifierService, subscriptionUrlBuilder);
     scanner.start();
 
     logger.info('[Scanner]: Scheduler started.');

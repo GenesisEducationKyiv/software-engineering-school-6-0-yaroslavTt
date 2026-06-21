@@ -22,7 +22,8 @@
             "@exceptions/*": ["./src/exceptions/*"],
             "@db/*": ["./src/db/*"],
             "@test/*": ["./src/test/*"],
-            "@common/*": ["./src/common/*"]
+            "@common/*": ["./src/common/*"],
+            "@proto/*": ["./src/proto/*"]
         }
     },
     "include": ["src/**/*", "apps/**/*"],
