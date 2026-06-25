@@ -3,17 +3,17 @@ import { ConflictException } from '@exceptions/conflict.exception';
 import type { SubscriptionRow } from './dto/subscription-row.dto';
 import type { ISubscriptionRepository } from './interface/subscription.repository.interface';
 import type { IGithubRepoService } from '@domains/github';
-import type { INotifierService } from '@domains/notification';
 import type { SubscribePayload } from './dto/subscribe-payload.dto';
 import type { ITokenGenerator } from '@common/interface/token-generator.interface';
 import type { ISubscriptionUrlBuilder } from './interface/subscription-url-builder.interface';
 import type { ISubscriptionService } from './interface/subscription.service.interface';
+import type { SubscribeSagaOrchestrator } from '@domains/saga';
 
 export class SubscriptionService implements ISubscriptionService {
     constructor(
         private readonly subscriptionRepository: ISubscriptionRepository,
         private readonly githubService: IGithubRepoService,
-        private readonly notifierService: INotifierService,
+        private readonly sagaOrchestrator: SubscribeSagaOrchestrator,
         private readonly tokenGenerator: ITokenGenerator,
         private readonly urlBuilder: ISubscriptionUrlBuilder,
     ) {}
@@ -45,10 +45,12 @@ export class SubscriptionService implements ISubscriptionService {
 
         const confirmUrl = this.urlBuilder.confirmUrl(confirmToken);
         const unsubscribeUrl = this.urlBuilder.unsubscribeUrl(unsubToken);
-        await this.notifierService.sendConfirmationEmail({
-            to: email,
+        await this.sagaOrchestrator.start({
+            email,
             owner,
             repo: repoName,
+            confirmToken,
+            unsubToken,
             confirmUrl,
             unsubscribeUrl,
         });

@@ -13,7 +13,7 @@ interface ReleaseNotificationMessage extends BaseNotificationMessage {
     releaseUrl: string;
 }
 
-interface ConfirmationNotificationMessage extends BaseNotificationMessage {
+export interface ConfirmationNotificationMessage extends BaseNotificationMessage {
     type: 'confirmation';
     confirmUrl: string;
 }
