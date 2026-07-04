@@ -2,6 +2,9 @@ import 'dotenv/config';
 
 const environmentConfig = Object.freeze({
     port: parseInt(process.env.PORT ?? '3000', 10),
+    grpcPort: parseInt(process.env.GRPC_PORT ?? '50051', 10),
+    grpcAddress: `${process.env.GRPC_HOST ?? 'localhost'}:${process.env.GRPC_PORT ?? '50051'}`,
+
     nodeEnv: process.env.NODE_ENV ?? 'development',
 
     databaseUrl: process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/ghnotify',

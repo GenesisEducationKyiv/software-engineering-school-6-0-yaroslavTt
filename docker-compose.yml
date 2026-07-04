@@ -3,6 +3,7 @@ services:
         build: .
         ports:
             - '3000:3000'
+            - '50051:50051'
         env_file: .env
         depends_on:
             db:
@@ -26,7 +27,12 @@ services:
         build: .
         command: node dist/apps/scanner/index.js
         env_file: .env
+        environment:
+            - GRPC_HOST=app
+            - GRPC_PORT=50051
         depends_on:
+            app:
+                condition: service_started
             db:
                 condition: service_healthy
             redis:

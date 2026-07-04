@@ -12,6 +12,9 @@ import type { SagaEmailReply } from '@domains/saga';
 import { SAGA_EMAIL_REPLIES_QUEUE_NAME } from '@constants/queues';
 import { CryptoTokenGenerator } from '@utilities/token';
 import { logger } from '@config/logger';
+import { Server, ServerCredentials } from '@grpc/grpc-js';
+import { SubscriptionServiceService } from '@proto/generated/subscription/v1/subscription';
+import { SubscriptionGrpcServer } from '@domains/subscription';
 
 async function main(): Promise<void> {
     // 1. Run DB migrations
@@ -36,9 +39,7 @@ async function main(): Promise<void> {
 
     // 4. Initialize RabbitMQ
     const rabbitMQ = new RabbitMQService(environmentConfig.rabbitmqUrl);
-    rabbitMQ.connect().catch((err) => {
-        logger.error({ err }, '[RabbitMQ]: Initial connection failed. Publish calls will fail until reconnected.');
-    });
+    await rabbitMQ.connect();
 
     // 5. Initialize Subscription repository
     const subscriptionRepository = new SubscriptionRepository(dbPool);
@@ -71,6 +72,17 @@ async function main(): Promise<void> {
     const app = createApp(subscriptionService);
     app.listen(environmentConfig.port, () => {
         logger.info({ port: environmentConfig.port }, `[server] Listening`);
+    });
+
+    // 10. Start gRPC server
+    const grpcServer = new Server();
+    grpcServer.addService(SubscriptionServiceService, new SubscriptionGrpcServer(subscriptionRepository));
+    grpcServer.bindAsync(`0.0.0.0:${environmentConfig.grpcPort}`, ServerCredentials.createInsecure(), (err, port) => {
+        if (err) {
+            logger.error({ err }, '[gRPC] Failed to bind');
+            return;
+        }
+        logger.info({ port }, '[gRPC] Listening');
     });
 }
 
