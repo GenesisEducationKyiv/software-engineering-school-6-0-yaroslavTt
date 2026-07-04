@@ -1,6 +1,7 @@
 import { SubscriptionServiceClient } from '@proto/generated/subscription/v1/subscription';
 import { credentials } from '@grpc/grpc-js';
-export class SubscriptionGrpcClient {
+import type { IScannerSubscriptionRepository } from './interface/scanner-subscription.repository.interface';
+export class SubscriptionGrpcClient implements IScannerSubscriptionRepository {
     private client: SubscriptionServiceClient;
 
     constructor(address: string) {
