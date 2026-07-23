@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Unsubscribe — GitHub Release Notifier</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                background: #0d1117;
+                color: #e6edf3;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 24px;
+            }
+
+            .card {
+                background: #161b22;
+                border: 1px solid #30363d;
+                border-radius: 12px;
+                padding: 40px;
+                width: 100%;
+                max-width: 440px;
+                text-align: center;
+            }
+
+            .icon {
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 24px;
+            }
+
+            .icon.loading {
+                background: #21262d;
+            }
+            .icon.success {
+                background: #0d2a0d;
+            }
+            .icon.error {
+                background: #2a0d0d;
+            }
+
+            .icon svg {
+                width: 28px;
+                height: 28px;
+            }
+            .icon.loading svg {
+                color: #8b949e;
+                animation: spin 1s linear infinite;
+            }
+            .icon.success svg {
+                color: #3fb950;
+            }
+            .icon.error svg {
+                color: #f85149;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            h1 {
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+
+            p {
+                font-size: 14px;
+                color: #8b949e;
+                line-height: 1.6;
+            }
+
+            a {
+                display: inline-block;
+                margin-top: 24px;
+                padding: 10px 20px;
+                background: #21262d;
+                color: #e6edf3;
+                text-decoration: none;
+                border-radius: 6px;
+                font-size: 14px;
+                border: 1px solid #30363d;
+                transition: background 0.15s;
+            }
+
+            a:hover {
+                background: #30363d;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <div class="icon loading" id="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                        d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
+                    />
+                </svg>
+            </div>
+            <h1 id="title">Unsubscribing…</h1>
+            <p id="message">Please wait.</p>
+            <a href="/" id="homeLink" style="display: none">Back to home</a>
+        </div>
+
+        <script>
+            const icon = document.getElementById('icon');
+            const title = document.getElementById('title');
+            const message = document.getElementById('message');
+            const homeLink = document.getElementById('homeLink');
+
+            const token = new URLSearchParams(window.location.search).get('token');
+
+            function setSuccess(msg) {
+                icon.className = 'icon success';
+                icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>`;
+                title.textContent = 'Unsubscribed!';
+                message.textContent = msg;
+                homeLink.style.display = 'inline-block';
+            }
+
+            function setError(msg) {
+                icon.className = 'icon error';
+                icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>`;
+                title.textContent = 'Unsubscribe failed';
+                message.textContent = msg;
+                homeLink.style.display = 'inline-block';
+            }
+
+            async function unsubscribe() {
+                if (!token) {
+                    setError('No unsubscribe token provided.');
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`/api/unsubscribe/${token}`);
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        setSuccess(data.message);
+                    } else {
+                        setError(data.error ?? 'Something went wrong.');
+                    }
+                } catch {
+                    setError('Network error — please try again.');
+                }
+            }
+
+            unsubscribe();
+        </script>
+    </body>
+</html>
